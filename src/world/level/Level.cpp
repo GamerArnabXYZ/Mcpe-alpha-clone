@@ -197,6 +197,25 @@ void Level::tick() {
 	TIMER_PUSH("chunkSource");
 	_chunkSource->tick();
 
+	// Infinite terrain: evict distant chunks every 200 ticks to control RAM.
+	// Eviction radius = 12 chunks = 192 blocks around each player.
+	{
+		static int _evictTick = 0;
+		const int EVICT_INTERVAL = 200;
+		const int EVICT_RADIUS   = 12;
+		if (++_evictTick >= EVICT_INTERVAL) {
+			_evictTick = 0;
+			if (_chunkSource->isChunkCache && !players.empty()) {
+				ChunkCache* cc = static_cast<ChunkCache*>(_chunkSource);
+				// Use first player as reference (single-player; for MP loop all players)
+				Player* p = players[0];
+				int pcx = (int)p->x >> 4;
+				int pcz = (int)p->z >> 4;
+				cc->evictFarChunks(pcx, pcz, EVICT_RADIUS);
+			}
+		}
+	}
+
 	updateSkyDarken();
 	if(_nightMode) {
 		long curTime = levelData.getTime();
@@ -278,9 +297,8 @@ void Level::tickTiles() {
 		for (int i = 0; i < pollChunkOffsetsSize; i += 2) {
 			const int xp = xx + pollChunkOffsets[i];
 			const int zp = zz + pollChunkOffsets[i+1];
-			if (xp >= 0 && xp < CHUNK_CACHE_WIDTH &&
-				zp >= 0 && zp < CHUNK_CACHE_WIDTH)
-				_chunksToPoll.insert(ChunkPos(xp, zp));
+			// Infinite world: all chunk coords valid
+			_chunksToPoll.insert(ChunkPos(xp, zp));
 		}
 	}
 	TIMER_POP();
@@ -428,17 +446,17 @@ bool Level::findPath(Path* path, Entity* from, int xBest, int yBest, int zBest, 
 /*protected*/
 void Level::setInitialSpawn() {
 	isFindingSpawn = true;
-	int xSpawn = CHUNK_CACHE_WIDTH * CHUNK_WIDTH / 2; // (Level.MAX_LEVEL_SIZE - 100) * 0;
+	int xSpawn = 0; // Infinite world: spawn near origin
 	int ySpawn = 64;
-	int zSpawn = CHUNK_CACHE_WIDTH * CHUNK_DEPTH / 2; // (Level.MAX_LEVEL_SIZE - 100) * 0;
+	int zSpawn = 0; // Infinite world: spawn near origin
 	while (!dimension->isValidSpawn(xSpawn, zSpawn)) {
 		xSpawn += random.nextInt(32) - random.nextInt(32);
 		zSpawn += random.nextInt(32) - random.nextInt(32);
 
 		if (xSpawn < 4) xSpawn += 32;
-		if (xSpawn >= LEVEL_WIDTH-4) xSpawn -= 32;
+		// Infinite world: no upper X spawn clamp
 		if (zSpawn < 4) zSpawn += 32;
-		if (zSpawn >= LEVEL_DEPTH-4) zSpawn -= 32;
+		// Infinite world: no upper Z spawn clamp
 	}
 	levelData.setSpawn(xSpawn, ySpawn, zSpawn);
 	isFindingSpawn = false;
@@ -456,9 +474,9 @@ void Level::validateSpawn() {
 		zSpawn += random.nextInt(8) - random.nextInt(8);
 
 		if (xSpawn < 4) xSpawn += 8;
-		if (xSpawn >= LEVEL_WIDTH-4) xSpawn -= 8;
+		// Infinite world: no upper X spawn clamp
 		if (zSpawn < 4) zSpawn += 8;
-		if (zSpawn >= LEVEL_DEPTH-4) zSpawn -= 8;
+		// Infinite world: no upper Z spawn clamp
 	}
 	levelData.setXSpawn(xSpawn);
 	levelData.setZSpawn(zSpawn);
@@ -944,7 +962,7 @@ HitResult Level::clip(const Vec3& A, const Vec3& b, bool liquid /*= false*/, boo
 		if (solidOnly && tile != NULL && tile->getAABB(this, xTile0, yTile0, zTile0) == NULL) {
 			// No collision
 		} else if (t > 0 && tile->mayPick(data, liquid)) {
-			if(xTile0 >= 0 && zTile0 >= 0 && xTile0 < LEVEL_WIDTH && zTile0 < LEVEL_WIDTH) {
+			{ // Infinite world: clip allowed at any X/Z
 				HitResult r = tile->clip(this, xTile0, yTile0, zTile0, a, b);
 				if (r.isHit()) return r;
 			}
@@ -2232,9 +2250,8 @@ void Level::setNightMode( bool isNightMode ) {
 }
 
 bool Level::inRange( int x, int y, int z ) {
-	return x >= 0 && x < LEVEL_WIDTH
-		&& y >= 0 && y < LEVEL_HEIGHT
-		&& z >= 0 && z < LEVEL_DEPTH;
+	// Infinite world: X/Z are unbounded; only Y is clamped
+	return y >= 0 && y < LEVEL_HEIGHT;
 }
 
 //

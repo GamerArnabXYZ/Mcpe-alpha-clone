@@ -275,8 +275,7 @@ bool ExternalFileLevelStorage::readPlayerData(const std::string& filename, Level
 			Vec3& pos = dest.playerData.pos;
 			if (pos.x < 0.5f) pos.x = 0.5f;
 			if (pos.z < 0.5f) pos.z = 0.5f;
-			if (pos.x > (LEVEL_WIDTH - 0.5f)) pos.x = LEVEL_WIDTH - 0.5f;
-			if (pos.z > (LEVEL_DEPTH - 0.5f)) pos.z = LEVEL_DEPTH - 0.5f;
+			// Infinite world: no upper X/Z position clamp
 			if (pos.y < 0) pos.y = 64;
 
 			dest.playerDataVersion = version;
@@ -293,37 +292,10 @@ void ExternalFileLevelStorage::tick()
 	if ((tickCount % 1000) == 0 && level) {
 		LOGI("Saving level...\n");
 
-		// look for chunks that needs to be saved
-		for (int z = 0; z < CHUNK_CACHE_WIDTH; z++)
-		{
-			for (int x = 0; x < CHUNK_CACHE_WIDTH; x++)
-			{
-				LevelChunk* chunk = level->getChunk(x, z);
-				if (chunk && chunk->unsaved)
-				{
-					int pos = x + z * CHUNK_CACHE_WIDTH;
-					UnsavedChunkList::iterator prev = unsavedChunkList.begin();
-					for ( ; prev != unsavedChunkList.end(); ++prev)
-					{
-						if ((*prev).pos == pos)
-						{
-							// the chunk has been modified again, so update its time
-							(*prev).addedToList = RakNet::GetTimeMS();
-							break;
-						}
-					}
-					if (prev == unsavedChunkList.end())
-					{
-						UnsavedLevelChunk unsaved;
-						unsaved.pos = pos;
-						unsaved.addedToList = RakNet::GetTimeMS();
-						unsaved.chunk = chunk;
-						unsavedChunkList.push_back(unsaved);
-					}
-					chunk->unsaved = false; // not actually saved, but in our working list at least
-				}
-			}
-		}
+		// Infinite world: delegate periodic dirty-chunk save to ChunkSource::saveAll.
+		// This works with the unordered_map-based ChunkCache.
+		if (level->getChunkSource())
+			level->getChunkSource()->saveAll(true);
 
         savePendingUnsavedChunks(2);
 	}

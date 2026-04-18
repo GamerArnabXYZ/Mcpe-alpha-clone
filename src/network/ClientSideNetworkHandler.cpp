@@ -1,5 +1,9 @@
 
 #include "ClientSideNetworkHandler.h"
+
+static inline int64_t chunkKeyNet(int x, int z) {
+    return ((int64_t)(uint32_t)x) | (((int64_t)(uint32_t)z) << 32);
+}
 #include "client/Options.h"
 #include "packet/PacketInclude.h"
 #include "RakNetInstance.h"
@@ -67,17 +71,12 @@ void ClientSideNetworkHandler::requestNextChunk()
 
 bool ClientSideNetworkHandler::areAllChunksLoaded()
 {
-	return (requestNextChunkPosition >= (CHUNK_CACHE_WIDTH * CHUNK_CACHE_WIDTH));
+	return (requestNextChunkIndex >= NumRequestChunks);
 }
 
 bool ClientSideNetworkHandler::isChunkLoaded(int x, int z)
 {
-	if (x < 0 || x >= CHUNK_CACHE_WIDTH || z < 0 || z >= CHUNK_CACHE_WIDTH) {
-		LOGE("Error: Tried to request chunk (%d, %d)\n", x, z);
-		return true;
-	}
-	return chunksLoaded[x * CHUNK_CACHE_WIDTH + z];
-	//return areAllChunksLoaded();
+	return chunksLoaded.count(chunkKeyNet(x, z)) > 0;
 }
 
 void ClientSideNetworkHandler::onConnect(const RakNet::RakNetGUID& hostGuid)
@@ -579,7 +578,7 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& source, ChunkDat
 	//chunk->terrainPopulated = true;
 	chunk->unsaved = false;
 
-	chunksLoaded[packet->x * CHUNK_CACHE_WIDTH + packet->z] = true;
+	chunksLoaded.insert(chunkKeyNet(packet->x, packet->z));
 
 	if (areAllChunksLoaded())
 	{
@@ -627,8 +626,8 @@ void ClientSideNetworkHandler::arrangeRequestChunkOrder() {
 	clearChunksLoaded();
 
     // Default sort is around center of the world
-    int cx = CHUNK_CACHE_WIDTH / 2;
-    int cz = CHUNK_CACHE_WIDTH / 2;
+    int cx = 0; // Infinite world: default center
+    int cz = 0;
 
     // If player exists, let's sort around him
     Player* p = minecraft? minecraft->player : NULL;
@@ -637,6 +636,16 @@ void ClientSideNetworkHandler::arrangeRequestChunkOrder() {
         cz = Mth::floor(p->z / (float)CHUNK_DEPTH);
     }
 
+    // Build request list as spiral around player chunk
+    int idx = 0;
+    for (int dx = -LOAD_RADIUS_NET; dx <= LOAD_RADIUS_NET && idx < NumRequestChunks; dx++) {
+        for (int dz = -LOAD_RADIUS_NET; dz <= LOAD_RADIUS_NET && idx < NumRequestChunks; dz++) {
+            requestNextChunkIndexList[idx].x = cx + dx;
+            requestNextChunkIndexList[idx].y = cz + dz;
+            idx++;
+        }
+    }
+    // Sort by distance from player
     _ChunkSorter sorter(cx, cz);
     std::sort(requestNextChunkIndexList, requestNextChunkIndexList + NumRequestChunks, sorter);
 }
@@ -917,10 +926,6 @@ void ClientSideNetworkHandler::handle(const RakNet::RakNetGUID& source, Adventur
 
 void ClientSideNetworkHandler::clearChunksLoaded()
 {
-	// Init the chunk positions
-	for (int i = 0; i < NumRequestChunks; ++i) {
-		requestNextChunkIndexList[i].x = i/CHUNK_WIDTH;
-		requestNextChunkIndexList[i].y = i%CHUNK_WIDTH;
-		chunksLoaded[i] = false;
-	}
+	chunksLoaded.clear();
+	// Chunk request list is rebuilt in arrangeRequestChunkOrder()
 }

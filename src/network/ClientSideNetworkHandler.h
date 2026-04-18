@@ -97,11 +97,13 @@ private:
 	BlockUpdateList	bufferedBlockUpdates;
 	int	requestNextChunkPosition;
 
-    static const int NumRequestChunks = CHUNK_CACHE_WIDTH * CHUNK_CACHE_WIDTH;
-    
+    // Infinite terrain: dynamic chunk request list around player
+    static const int LOAD_RADIUS_NET = 8; // chunks to request from server
+    static const int NumRequestChunks = (LOAD_RADIUS_NET*2+1) * (LOAD_RADIUS_NET*2+1);
+
     int requestNextChunkIndex;
     IntPair requestNextChunkIndexList[NumRequestChunks];
-	bool chunksLoaded[NumRequestChunks];
+	std::unordered_set<int64_t> chunksLoaded;
 };
 
 #endif

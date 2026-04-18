@@ -359,35 +359,48 @@ void Minecraft::prepareLevel(const std::string& title) {
 	if (!level->isNew())
 		level->setUpdateLights(false);
 
-	int Max = CHUNK_CACHE_WIDTH * CHUNK_CACHE_WIDTH;
-	int pp = 0;
-	for (int x = 8; x < (CHUNK_CACHE_WIDTH * CHUNK_WIDTH); x += CHUNK_WIDTH) {
-        for (int z = 8; z < (CHUNK_CACHE_WIDTH * CHUNK_WIDTH); z += CHUNK_WIDTH) {
-            progressStagePercentage = 100 * pp++ / Max;
-            //printf("level generation progress %d\n", progressStagePercentage);
-			B.start();
-            level->getTile(x, 64, z);
-			B.stop();
-			L.start();
-			if (level->isNew())
-				while (level->updateLights())
-					;
-			L.stop();
-        }
-    }
+	// Infinite terrain: load chunks around spawn instead of fixed grid
+	{
+		const int spawnX = level->getLevelData()->getXSpawn();
+		const int spawnZ = level->getLevelData()->getZSpawn();
+		const int LOAD_RADIUS = 8;
+		const int LOAD_DIAM = LOAD_RADIUS * 2 + 1;
+		int Max = LOAD_DIAM * LOAD_DIAM;
+		int pp = 0;
+		for (int cx = -LOAD_RADIUS; cx <= LOAD_RADIUS; cx++) {
+			for (int cz = -LOAD_RADIUS; cz <= LOAD_RADIUS; cz++) {
+				progressStagePercentage = 100 * pp++ / Max;
+				int x = spawnX + cx * CHUNK_WIDTH;
+				int z = spawnZ + cz * CHUNK_WIDTH;
+				B.start();
+				level->getTile(x, 64, z);
+				B.stop();
+				L.start();
+				if (level->isNew())
+					while (level->updateLights())
+						;
+				L.stop();
+			}
+		}
+	}
 	A.stop();
 	level->setUpdateLights(true);
 
 	C.start();
-	for (int x = 0; x < CHUNK_CACHE_WIDTH; x++)
+	// Infinite terrain: mark spawn-area chunks as clean after new world gen
 	{
-		for (int z = 0; z < CHUNK_CACHE_WIDTH; z++)
-		{
-			LevelChunk* chunk = level->getChunk(x, z);
-			if (chunk && !chunk->createdFromSave)
-			{
-				chunk->unsaved = false;
-				chunk->clearUpdateMap();
+		const int spawnX2 = level->getLevelData()->getXSpawn();
+		const int spawnZ2 = level->getLevelData()->getZSpawn();
+		const int MARK_RADIUS = 8;
+		for (int cx = -MARK_RADIUS; cx <= MARK_RADIUS; cx++) {
+			for (int cz = -MARK_RADIUS; cz <= MARK_RADIUS; cz++) {
+				int x = (spawnX2 >> 4) + cx;
+				int z = (spawnZ2 >> 4) + cz;
+				LevelChunk* chunk = level->getChunk(x, z);
+				if (chunk && !chunk->createdFromSave) {
+					chunk->unsaved = false;
+					chunk->clearUpdateMap();
+				}
 			}
 		}
 	}
