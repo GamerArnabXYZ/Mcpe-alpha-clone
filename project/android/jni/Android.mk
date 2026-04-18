@@ -260,6 +260,14 @@ LOCAL_STATIC_LIBRARIES := android_native_app_glue
 
 TARGET_ARCH_ABI := armeabi-v7a
 
+../../../src/raknet/BitStream.cpp \
+../../../src/raknet/RakNetTypes.cpp \
+../../../src/raknet/RakMemoryOverride.cpp \
+../../../src/raknet/RakString.cpp \
+../../../src/raknet/RakWString.cpp \
+../../../src/raknet/DS_ByteQueue.cpp \
+../../../src/raknet/GetTime.cpp \
+../../../src/raknet/Itoa.cpp \
 include $(BUILD_SHARED_LIBRARY)
 
 # NOTE: environment var NDK_MODULE_PATH needs to point to lib_projects folder

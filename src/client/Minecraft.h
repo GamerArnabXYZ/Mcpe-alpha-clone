@@ -10,7 +10,7 @@
 
 #include "Timer.h"
 
-//#include "../world/phys/HitResult.h"
+#include "../world/phys/HitResult.h"
 
 class Level;
 class LocalPlayer;

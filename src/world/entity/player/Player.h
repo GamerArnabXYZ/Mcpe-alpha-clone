@@ -175,8 +175,7 @@ public:
 
 	BaseContainerMenu* containerMenu;
 
-	// ok I know it's not so nice to build in RakNet dependency here, BUT I DON'T CARE! MUAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHHAHAHAHAHAHAHAHAHHAHAHAHAHAHAHA
-	RakNet::RakNetGUID owner;
+	uint64_t owner; // player network ID (offline = 0)
 	bool hasFakeInventory;
 	Pos bedPosition;
 	float bedOffsetX;
