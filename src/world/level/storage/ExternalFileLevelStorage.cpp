@@ -6,6 +6,7 @@
 #include "FolderMethods.h"
 #include "../chunk/LevelChunk.h"
 #include "../Level.h"
+#include "../chunk/ChunkSource.h"
 #include "../LevelConstants.h"
 #include "platform/log.h"
 #include "../tile/TreeTile.h"
