@@ -14,8 +14,7 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
                    ../../../src/platform/input/Multitouch.cpp \
                    ../../../src/platform/time.cpp \
                    ../../../src/platform/CThread.cpp \
-                   ../../../src/platform/HttpClient.cpp \
-../../../src/NinecraftApp.cpp \
+                   ../../../src/NinecraftApp.cpp \
 ../../../src/Performance.cpp \
 ../../../src/SharedConstants.cpp \
 ../../../src/client/IConfigListener.cpp \
@@ -52,32 +51,24 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
 ../../../src/client/gui/Screen.cpp \
 ../../../src/client/gui/screens/ScreenChooser.cpp \
 ../../../src/client/gui/screens/ArmorScreen.cpp \
-../../../src/client/gui/screens/ChatScreen.cpp \
 ../../../src/client/gui/screens/ChooseLevelScreen.cpp \
 ../../../src/client/gui/screens/SimpleChooseLevelScreen.cpp \
-../../../src/client/gui/screens/ConsoleScreen.cpp \
-../../../src/client/gui/screens/UsernameScreen.cpp \
 ../../../src/client/gui/screens/ConfirmScreen.cpp \
 ../../../src/client/gui/screens/ChestScreen.cpp \
 ../../../src/client/gui/screens/DeathScreen.cpp \
 ../../../src/client/gui/screens/FurnaceScreen.cpp \
 ../../../src/client/gui/screens/InBedScreen.cpp \
 ../../../src/client/gui/screens/IngameBlockSelectionScreen.cpp \
-../../../src/client/gui/screens/JoinGameScreen.cpp \
 ../../../src/client/gui/screens/OptionsScreen.cpp \
                    ../../../src/client/gui/screens/CreditsScreen.cpp \
                    ../../../src/client/gui/screens/PauseScreen.cpp \
 ../../../src/client/gui/screens/ProgressScreen.cpp \
-../../../src/client/gui/screens/RenameMPLevelScreen.cpp \
 ../../../src/client/gui/screens/SelectWorldScreen.cpp \
 ../../../src/client/gui/screens/StartMenuScreen.cpp \
 ../../../src/client/gui/screens/TextEditScreen.cpp \
-../../../src/client/gui/screens/JoinByIPScreen.cpp \
 ../../../src/client/gui/screens/touch/TouchIngameBlockSelectionScreen.cpp \
-../../../src/client/gui/screens/touch/TouchJoinGameScreen.cpp \
 ../../../src/client/gui/screens/touch/TouchSelectWorldScreen.cpp \
 ../../../src/client/gui/screens/touch/TouchStartMenuScreen.cpp \
-../../../src/client/gui/screens/UploadPhotoScreen.cpp \
 ../../../src/client/gui/screens/crafting/CraftingFilters.cpp \
 ../../../src/client/gui/screens/crafting/PaneCraftingScreen.cpp \
 ../../../src/client/gui/screens/crafting/StonecutterScreen.cpp \
@@ -95,7 +86,6 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
 ../../../src/client/particle/Particle.cpp \
 ../../../src/client/particle/ParticleEngine.cpp \
 ../../../src/client/player/LocalPlayer.cpp \
-../../../src/client/player/RemotePlayer.cpp \
 ../../../src/client/player/input/KeyboardInput.cpp \
 ../../../src/client/player/input/touchscreen/TouchscreenInput.cpp \
 ../../../src/client/renderer/Lighting.cpp \
@@ -134,14 +124,6 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
 ../../../src/client/sound/SoundEngine.cpp \
 ../../../src/locale/I18n.cpp \
 ../../../src/nbt/Tag.cpp \
-../../../src/network/command/CommandServer.cpp \
-../../../src/network/ClientSideNetworkHandler.cpp \
-../../../src/network/NetEventCallback.cpp \
-../../../src/network/Packet.cpp \
-../../../src/network/RakNetInstance.cpp \
-../../../src/network/ServerSideNetworkHandler.cpp \
-../../../src/server/ServerLevel.cpp \
-../../../src/server/ServerPlayer.cpp \
 ../../../src/util/DataIO.cpp \
 ../../../src/util/Mth.cpp \
 ../../../src/util/StringUtils.cpp \
@@ -260,7 +242,7 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
 ../../../src/world/level/tile/entity/FurnaceTileEntity.cpp \
 ../../../src/world/phys/HitResult.cpp
 
-LOCAL_CFLAGS := -DPLATFORM_ANDROID -DPRE_ANDROID23 -Wno-narrowing $(LOCAL_CFLAGS)
+LOCAL_CFLAGS := -DPLATFORM_ANDROID -DVOXELFORGE -DPRE_ANDROID23 -Wno-narrowing $(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS := -std=c++14 -frtti
 LOCAL_CPPFLAGS += -frtti
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../src
@@ -272,7 +254,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../src
 #LOCAL_CFLAGS := -DGLDEBUG $(LOCAL_CFLAGS)
 
 LOCAL_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM -lOpenSLES
-LOCAL_STATIC_LIBRARIES := android_native_app_glue RakNet
+LOCAL_STATIC_LIBRARIES := android_native_app_glue
 
 #LOCAL_CPP_FEATURES := exceptions
 
@@ -282,4 +264,3 @@ include $(BUILD_SHARED_LIBRARY)
 
 # NOTE: environment var NDK_MODULE_PATH needs to point to lib_projects folder
 $(call import-module,android/native_app_glue)
-$(call import-module, raknet/jni)

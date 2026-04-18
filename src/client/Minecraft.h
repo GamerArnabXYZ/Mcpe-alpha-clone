@@ -10,8 +10,7 @@
 
 #include "Timer.h"
 
-//#include "../network/RakNetInstance.h"
-#include "../world/phys/HitResult.h"
+//#include "../world/phys/HitResult.h"
 
 class Level;
 class LocalPlayer;
@@ -33,8 +32,6 @@ class LevelStorageSource;
 class BuildActionIntention;
 class PerfRenderer;
 class LevelSettings;
-class IRakNetInstance;
-class NetEventCallback;
 class CommandServer;
 struct PingedCompatibleServer;
 //class ExternalFileLevelStorageSource;
@@ -75,8 +72,6 @@ public:
 	LevelStorageSource* getLevelSource();
 
 	bool isLookingForMultiplayer;
-	void locateMultiplayer();
-	void cancelLocateMultiplayer();
 	bool joinMultiplayer(const PingedCompatibleServer& server);
 	bool joinMultiplayerFromString(const std::string& server);
 	void hostMultiplayer(int port=19132);
@@ -159,8 +154,6 @@ public:
 	ScreenChooser screenChooser;
 	Font* font;
 #endif
-	IRakNetInstance*  raknetInstance;
-	NetEventCallback* netCallback;
 
 	int lastTime;
 	int lastTickTime;

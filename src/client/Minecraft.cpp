@@ -15,9 +15,6 @@
 #if defined(RPI)
 	#define CREATORMODE
 #endif
-#include "../network/RakNetInstance.h"
-#include "../network/ClientSideNetworkHandler.h"
-#include "../network/ServerSideNetworkHandler.h"
 //#include "../network/Packet.h"
 #include "../world/entity/player/Inventory.h"
 #include "../world/level/tile/Tile.h"
@@ -33,9 +30,6 @@
 #include "particle/ParticleEngine.h"
 #include "gui/Screen.h"
 #include "gui/Font.h"
-#include "gui/screens/RenameMPLevelScreen.h"
-#include "gui/screens/ConsoleScreen.h"
-#include "gui/screens/ChatScreen.h"
 #include "sound/SoundEngine.h"
 #include "player/input/touchscreen/TouchscreenInput.h"
 #include "renderer/Chunk.h"
@@ -52,7 +46,6 @@
 #include "renderer/entity/EntityRenderDispatcher.h"
 #include "gui/Screen.h"
 #include "gui/Font.h"
-#include "gui/screens/RenameMPLevelScreen.h"
 #include "sound/SoundEngine.h"
 #endif // STANDALONE_SERVER
 
@@ -81,13 +74,11 @@
 #include "IConfigListener.h"
 #include "../world/entity/MobCategory.h"
 #include "../world/Difficulty.h"
-#include "../server/ServerLevel.h"
 
 #ifdef CREATORMODE
 #include "../server/CreatorLevel.h"
 #endif
 
-#include "../network/command/CommandServer.h"
 #include "gamemode/CreatorMode.h"
 
 #include "../world/level/GrassColor.h"

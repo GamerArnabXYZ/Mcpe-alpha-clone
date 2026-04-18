@@ -1,20 +1,14 @@
 #include "ScreenChooser.h"
 #include "StartMenuScreen.h"
 #include "SelectWorldScreen.h"
-#include "JoinGameScreen.h"
 #include "PauseScreen.h"
-#include "RenameMPLevelScreen.h"
-#include "ConsoleScreen.h"
 #include "IngameBlockSelectionScreen.h"
-#include "JoinByIPScreen.h"
 #include "touch/TouchStartMenuScreen.h"
 #include "touch/TouchSelectWorldScreen.h"
-#include "touch/TouchJoinGameScreen.h"
 #include "touch/TouchIngameBlockSelectionScreen.h"
 
 #include "../../Minecraft.h"
 
-#include "UsernameScreen.h"
 
 Screen* ScreenChooser::createScreen( ScreenId id )
 {

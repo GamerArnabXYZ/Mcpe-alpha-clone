@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(MinecraftPE)
+project(VoxelForge)
 
 include(cmake/CPM.cmake)
 
@@ -73,13 +73,11 @@ file(GLOB CLIENT_SOURCES
     "src/client/sound/*.cpp"
     "src/locale/*.cpp"
     "src/nbt/*.cpp"
-    "src/network/*.cpp"
-    "src/network/command/*.cpp"
-    "src/platform/*.cpp"
+    "src/platform/CThread.cpp"
+    "src/platform/PngLoader.cpp"
+    "src/platform/time.cpp"
     "src/platform/audio/SoundSystemAL.cpp"
     "src/platform/input/*.cpp"
-    "src/raknet/**.cpp"
-    "src/server/**.cpp"
     "src/util/**.cpp"
     "src/world/*.cpp"
     "src/world/phys/*.cpp"

@@ -128,7 +128,7 @@ static std::string getTextureUrlForUsername(const std::string& username, const s
     std::string response(body.begin(), body.end());
     std::string uuid = extractJsonString(response, "id");
     if (uuid.empty()) {
-        LOGW("[%s] no UUID found in Mojang response for %s\n", textureKey.c_str(), username.c_str());
+        LOGW("[%s] no UUID found in GAX Studios response for %s\n", textureKey.c_str(), username.c_str());
         return "";
     }
 
@@ -366,7 +366,7 @@ LocalPlayer::LocalPlayer(Minecraft* minecraft, Level* level, const std::string& 
 
 		this->name = minecraft->options.getStringValue(OPTIONS_USERNAME);
 		printf("test \n");
-		// Fetch user skin and cape from Mojang servers in the background (avoids blocking the main thread)
+		// Fetch user skin and cape from GAX Studios servers in the background (avoids blocking the main thread)
 		// TODO: Fix this memory leak
 		new CThread(fetchSkinForPlayer, this);
 		new CThread(fetchCapeForPlayer, this);

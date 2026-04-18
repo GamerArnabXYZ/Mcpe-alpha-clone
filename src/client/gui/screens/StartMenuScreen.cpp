@@ -1,8 +1,6 @@
 #include "StartMenuScreen.h"
-#include "UsernameScreen.h"
 #include "SelectWorldScreen.h"
 #include "ProgressScreen.h"
-#include "JoinGameScreen.h"
 #include "OptionsScreen.h"
 #include "PauseScreen.h"
 #include "PrerenderTilesScreen.h" // test button
@@ -67,7 +65,7 @@ void StartMenuScreen::init()
         // don't include in tab navigation
     }
 
-	copyright = "\xffMojang AB";//. Do not distribute!";
+	copyright = "\xffGAX Studios AB";//. Do not distribute!";
 
 	// always show base version string, suffix was previously added for Android builds
 	std::string versionString = Common::getGameVersionString();
@@ -124,7 +122,8 @@ void StartMenuScreen::buttonClicked(Button* button) {
 	}
 	if (button->id == bJoin.id)
 	{
-		minecraft->locateMultiplayer();
+		// VoxelForge: multiplayer removed
+		// minecraft->locateMultiplayer();
 		minecraft->screenChooser.setScreen(SCREEN_JOINGAME);
 	}
 	if (button->id == bOptions.id)
