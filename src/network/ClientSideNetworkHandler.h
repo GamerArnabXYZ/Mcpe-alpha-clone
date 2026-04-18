@@ -7,6 +7,8 @@
 #include "../world/level/LevelConstants.h"
 
 #include <vector>
+#include <set>
+#include <cstdint>
 
 class Minecraft;
 class Level;
@@ -103,7 +105,7 @@ private:
 
     int requestNextChunkIndex;
     IntPair requestNextChunkIndexList[NumRequestChunks];
-	std::unordered_set<int64_t> chunksLoaded;
+	std::set<int64_t> chunksLoaded; // sorted set, fully compatible with gnustl/NDK r14b
 };
 
 #endif
