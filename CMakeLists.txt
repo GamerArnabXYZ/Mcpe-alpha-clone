@@ -3,7 +3,7 @@ project(MinecraftPE)
 
 include(cmake/CPM.cmake)
 
-# C++14 everywhere — must be set BEFORE add_executable, not overridden after
+# C++14 — set ONCE before any targets
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -22,9 +22,7 @@ endif()
 
 set(PLATFORM Web CACHE STRING "Platform to build for." FORCE)
 
-find_package(Threads REQUIRED)
-
-# ── Emscripten-provided libs (linked via flags, not system install) ──────────
+# ── Emscripten-provided libs (via port flags, no system install needed) ──────
 add_library(zlib INTERFACE IMPORTED)
 set_target_properties(zlib PROPERTIES
     INTERFACE_LINK_OPTIONS "-sUSE_ZLIB=1"
@@ -41,20 +39,12 @@ set_target_properties(glfw PROPERTIES
     INTERFACE_LINK_OPTIONS "-sUSE_GLFW=3"
 )
 
-# ── OpenAL-soft (static, fetched via CPM) ───────────────────────────────────
-CPMAddPackage(
-    NAME "openal"
-    GIT_REPOSITORY "https://github.com/kcat/openal-soft.git"
-    GIT_TAG "1.25.1"
-    OPTIONS
-        "ALSOFT_EXAMPLES OFF"
-        "ALSOFT_TESTS OFF"
-        "ALSOFT_UTILS OFF"
-        "LIBTYPE STATIC"
-        "ALSOFT_ENABLE_MODULES OFF"
-        "ALSOFT_STATIC_STDCXX ON"
-        "ALSOFT_STATIC_LIBGCC ON"
-)
+# ── OpenAL is NOT used in web build (NO_SOUND is defined) ────────────────────
+# OpenAL-soft 1.24+ requires clang-scan-deps for C++20 module scanning,
+# which is NOT available in Emscripten's toolchain — causes code=127 crash.
+# Since the web target compiles with NO_SOUND, we don't need OpenAL at all.
+# We create a stub INTERFACE target so any accidental references link cleanly.
+add_library(OpenAL::OpenAL INTERFACE IMPORTED GLOBAL)
 
 # ── Source files ─────────────────────────────────────────────────────────────
 file(GLOB_RECURSE CLIENT_SOURCES
@@ -73,15 +63,17 @@ file(GLOB_RECURSE CLIENT_SOURCES
     "src/AppPlatform_glfw.cpp"
 )
 
-# Exclude Android-only platform files from web build
+# Exclude Android-only and sound-system files from web build
 list(FILTER CLIENT_SOURCES EXCLUDE REGEX ".*SoundSystemSL\\.cpp$")
+list(FILTER CLIENT_SOURCES EXCLUDE REGEX ".*SoundSystemAL\\.cpp$")
 list(FILTER CLIENT_SOURCES EXCLUDE REGEX ".*main_android_java\\.cpp$")
 
 add_executable(${PROJECT_NAME} ${CLIENT_SOURCES})
 
 # ── Emscripten compile/link flags ────────────────────────────────────────────
-# pthread + shared memory required for OpenAL-soft
-set(EM_THREAD_FLAGS "-pthread -sUSE_PTHREADS=1 -sSHARED_MEMORY=1")
+# NO pthread/shared memory needed since we dropped OpenAL.
+# Emscripten pthreads also require cross-origin isolation headers on the server,
+# which makes deployment harder — skip it for the web target.
 
 target_compile_options(${PROJECT_NAME} PRIVATE
     "-Os"
@@ -89,12 +81,10 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     "-Wno-narrowing"
     "-Wno-deprecated-register"
     "-Wno-reserved-user-defined-literal"
-    ${EM_THREAD_FLAGS}
 )
 
 target_link_options(${PROJECT_NAME} PRIVATE
     "-Os"
-    ${EM_THREAD_FLAGS}
     "-sUSE_LIBPNG=1"
     "-sALLOW_MEMORY_GROWTH=1"
     "-sFORCE_FILESYSTEM=1"
@@ -129,14 +119,12 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_SOURCE_DIR}/glad/include/"
     "${CMAKE_SOURCE_DIR}/src"
-    "${openal_SOURCE_DIR}/include"
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     zlib
     png
     glfw
-    OpenAL::OpenAL
     idbfs.js
 )
 
@@ -149,4 +137,4 @@ add_custom_command(
     COMMENT "Copying index.html to build dir"
 )
 
-message(STATUS "Configured MinecraftPE for Web (Emscripten)")
+message(STATUS "Configured MinecraftPE for Web (Emscripten) — NO_SOUND mode")
