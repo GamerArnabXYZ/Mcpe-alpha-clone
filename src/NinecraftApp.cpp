@@ -114,10 +114,10 @@ void NinecraftApp::init()
 
 	if (options.getBooleanValue(OPTIONS_FIRST_LAUNCH)) {
 		options.toggle(OPTIONS_FIRST_LAUNCH);
-		setScreen(new UsernameScreen());
+		// VoxelForge: no username screen, just start
 	}
 #else
-	hostMultiplayer();
+ // VF_REMOVED: hostMultiplayer();
 #endif
 }
 
@@ -160,10 +160,7 @@ void NinecraftApp::update()
 	swapBuffers();
 	Mouse::reset2();
 
-    // Restart the server if (our modded) RakNet reports an error
-    if (level && raknetInstance->isProbablyBroken() && raknetInstance->isServer()) {
-        restartServer();
-    }
+    // VoxelForge: multiplayer server restart removed
 
 #ifndef WIN32
 	updateStats();
@@ -266,12 +263,10 @@ void NinecraftApp::restartServer() {
             level->removeEntity(p);
     }
 
-	raknetInstance->resetIsBroken();
+	// VoxelForge: multiplayer restart not needed
 #ifndef STANDALONE_SERVER
-    gui.addMessage("This server has restarted!");
+    // gui.addMessage("This server has restarted!");
 #endif
-    hostMultiplayer();
-    if (netCallback) netCallback->levelGenerated(level);
 }
 
 bool NinecraftApp::handleBack(bool isDown)
@@ -336,7 +331,7 @@ void NinecraftApp::testCreationAndDestruction()
 		int seed = getEpochTimeS();
 		LOGI(">seed %d\n", seed);
 		selectLevel("perf", "perf", LevelSettings(seed, GameType::Creative));
-		hostMultiplayer();
+		// VoxelForge: no multiplayer hosting
 #ifndef STANDALONE_SERVER
 		setScreen(new ProgressScreen());
 #endif
@@ -365,18 +360,20 @@ void NinecraftApp::testJoiningAndDestruction()
 		_stateTicksLeft = 100;
 		_state = 0;
 	}
-	if (_state == 0) {
+	// VoxelForge: multiplayer join test removed
+	if (false && _state == 0) {
 		if (--_stateTicksLeft <= 0) {
-			raknetInstance->clearServerList();
-			locateMultiplayer();
+			// raknetInstance->clearServerList();
+			// locateMultiplayer();
 			_state = 1;
 		}
 	}
-	else if (_state == 1) {
-		if (!raknetInstance->getServerList().empty()) {
-			PingedCompatibleServer s = raknetInstance->getServerList().at(0);
+	else if (false && _state == 1) {
+		if (true) {
+			// PingedCompatibleServer s = ...;
+			if (false) {
 			if (s.name.GetLength() > 0) {
-				joinMultiplayer(s);
+    // VF_REMOVED: joinMultiplayer(s);
 #ifndef STANDALONE_SERVER
 				setScreen(new ProgressScreen());
 #endif

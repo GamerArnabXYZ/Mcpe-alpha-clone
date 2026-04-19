@@ -63,7 +63,7 @@ public:
 /*
 				PlaceBlockPacket packet(player->entityId, x, y, z, face, tileId, instance->getAuxValue());
 				//LOGI("Place block at @ %d, %d, %d\n", x, y, z);
-				level->raknetInstance->send(packet);
+    // VF_REMOVED: level->raknetInstance->send(packet);
 */
                 instance->count--;
             }

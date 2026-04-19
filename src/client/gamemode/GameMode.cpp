@@ -75,7 +75,7 @@ bool GameMode::destroyBlock(int x, int y, int z, int face) {
 
 		if (minecraft->isOnline()) {
 			RemoveBlockPacket packet(minecraft->player, x, y, z);
-			minecraft->raknetInstance->send(packet);
+   // VF_REMOVED: minecraft->raknetInstance->send(packet);
 		}
 	}
     return changed;
@@ -88,7 +88,7 @@ bool GameMode::useItemOn(Player* player, Level* level, ItemInstance* item, int x
 	if (level->isClientSide) {
 		item = player->inventory->getSelected();
 		UseItemPacket packet(x, y, z, face, item, player->entityId, clickX, clickY, clickZ);
-		minecraft->raknetInstance->send(packet);
+  // VF_REMOVED: minecraft->raknetInstance->send(packet);
 	}
     int t = level->getTile(x, y, z);
 	if (t == Tile::invisible_bedrock->id) return false;
@@ -114,7 +114,7 @@ bool GameMode::useItem( Player* player, Level* level, ItemInstance* item ) {
 	ItemInstance* itemInstance = item->use(level, player);
 	if(level->isClientSide) {
 		UseItemPacket packet(item, player->entityId, player->aimDirection);
-		minecraft->raknetInstance->send(packet);
+  // VF_REMOVED: minecraft->raknetInstance->send(packet);
 	}
 	if (itemInstance != item || (itemInstance != NULL && itemInstance->count != oldCount)) {
 	    //player.inventory.items[player.inventory.selected] = itemInstance;
@@ -147,7 +147,7 @@ void GameMode::initPlayer( Player* player ) {
 void GameMode::releaseUsingItem(Player* player){
 	if (minecraft->level->isClientSide && player->isUsingItem()) {
 		PlayerActionPacket packet(PlayerActionPacket::RELEASE_USE_ITEM,  0, 0, 0, 0, player->entityId);
-		minecraft->raknetInstance->send(packet);
+  // VF_REMOVED: minecraft->raknetInstance->send(packet);
 	}
 	player->releaseUsingItem();
 }

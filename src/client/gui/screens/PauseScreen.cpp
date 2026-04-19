@@ -77,8 +77,8 @@ void PauseScreen::init() {
     
     #if !defined(APPLE_DEMO_PROMOTION) && !defined(RPI)
 	if (true || !wasBackPaused) {
-		if (minecraft->raknetInstance) {
-			if (minecraft->raknetInstance->isServer()) {
+  // VF_REMOVED: if (minecraft->raknetInstance) {
+   // VF_REMOVED: if (minecraft->raknetInstance->isServer()) {
 				updateServerVisibilityText();
 				buttons.push_back(bServerVisibility);
 			}
@@ -169,7 +169,7 @@ void PauseScreen::buttonClicked(Button* button) {
 		minecraft->setScreen(new OptionsScreen());
 	}
 	if (button->id == bServerVisibility->id) {
-		if (minecraft->raknetInstance && minecraft->netCallback && minecraft->raknetInstance->isServer()) {
+  // VF_REMOVED: if (minecraft->raknetInstance && minecraft->netCallback && minecraft->raknetInstance->isServer()) {
 			ServerSideNetworkHandler* ss = (ServerSideNetworkHandler*) minecraft->netCallback;
 			bool allows = !ss->allowsIncomingConnections();
 			ss->allowIncomingConnections(allows);
@@ -189,7 +189,7 @@ void PauseScreen::buttonClicked(Button* button) {
 
 void PauseScreen::updateServerVisibilityText()
 {
-	if (!minecraft->raknetInstance || !minecraft->raknetInstance->isServer())
+ // VF_REMOVED: if (!minecraft->raknetInstance || !minecraft->raknetInstance->isServer())
 		return;
 
 	ServerSideNetworkHandler* ss = (ServerSideNetworkHandler*) minecraft->netCallback;

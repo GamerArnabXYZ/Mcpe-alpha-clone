@@ -510,7 +510,7 @@ void FurnaceScreen::takeAndClearSlot( int slot )
 	furnace->setItem(slot, &blank);
 	if (minecraft->level->isClientSide) {
 		ContainerSetSlotPacket p(menu->containerId, slot, blank);
-		minecraft->raknetInstance->send(p);
+  // VF_REMOVED: minecraft->raknetInstance->send(p);
 	}
 
 	int oldSize = minecraft->player->inventory->getNumEmptySlots();
@@ -545,7 +545,7 @@ bool FurnaceScreen::handleAddItem( int slot, const ItemInstance* item )
 	 
 	if (minecraft->level->isClientSide) {
 		ContainerSetSlotPacket p(menu->containerId, slot, *furnaceItem);
-		minecraft->raknetInstance->send(p);
+  // VF_REMOVED: minecraft->raknetInstance->send(p);
 	}
 
 	int newSize = minecraft->player->inventory->getNumEmptySlots();

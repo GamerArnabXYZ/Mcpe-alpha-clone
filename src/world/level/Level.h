@@ -30,7 +30,7 @@ class TripodCamera;
 class Player;
 class PathFinder;
 class LevelListener;
-class IRakNetInstance;
+// VF_REMOVED: class IRakNetInstance;
 class Zombie;
 class TileEntity;
 
@@ -305,7 +305,7 @@ public:
 	bool noNeighborUpdate;
 
 	Dimension* dimension;
-	IRakNetInstance* raknetInstance;
+// VF_REMOVED: 	IRakNetInstance* raknetInstance;
 	Random random;
 protected:
 	bool isFindingSpawn;

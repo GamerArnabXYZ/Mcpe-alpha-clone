@@ -131,7 +131,7 @@ Minecraft::Minecraft() :
 #ifndef STANDALONE_SERVER
 	gui(this),
 #endif
-	netCallback(NULL),
+	// VF_REMOVED: netCallback(NULL),
 #ifndef STANDALONE_SERVER
 	screen(NULL),
 	font(NULL),
@@ -168,9 +168,9 @@ Minecraft::Minecraft() :
 //#ifdef ANDROID
 
 #if defined(NO_NETWORK)
-    raknetInstance = new IRakNetInstance();
+	// VF_REMOVED: raknetInstance = new IRakNetInstance();
 #else
-	raknetInstance = new RakNetInstance();
+	// VF_REMOVED: raknetInstance = new RakNetInstance();
 #endif
 #ifndef STANDALONE_SERVER
 	soundEngine = new SoundEngine(20.0f);
@@ -181,8 +181,8 @@ Minecraft::Minecraft() :
 
 Minecraft::~Minecraft()
 {
-	delete netCallback;
-	delete raknetInstance;
+	// VF_REMOVED: delete netCallback;
+	// VF_REMOVED: delete raknetInstance;
 #ifndef STANDALONE_SERVER
 	delete levelRenderer;
 	delete gameRenderer;
@@ -247,7 +247,7 @@ void Minecraft::setLevel(Level* level, const std::string& message /* ="" */, Loc
 	LOGI("Seed is %ld\n", level->getSeed());
 
 	if (level != NULL) {
-		level->raknetInstance = raknetInstance;
+	// VF_REMOVED: level->raknetInstance = raknetInstance;
         gameMode->initLevel(level);
 
 		if (!player && forceInsertPlayer)
@@ -295,7 +295,7 @@ void Minecraft::leaveGame(bool renameLevel /*=false*/)
 	isGeneratingLevel = false;
 	bool saveLevel = level && (!level->isClientSide || renameLevel);
 
-	raknetInstance->disconnect();
+	// VF_REMOVED: raknetInstance->disconnect();
 	if (saveLevel) {
 		// If server or wanting to save level as client, save all unsaved chunks!
 		level->getChunkSource()->saveAll(true);
@@ -309,8 +309,8 @@ void Minecraft::leaveGame(bool renameLevel /*=false*/)
 	particleEngine->setLevel(NULL);
 #endif
 	LOGI("Erasing callback\n");
-	delete netCallback;
-	netCallback = NULL;
+	// VF_REMOVED: delete netCallback;
+	// VF_REMOVED: netCallback = NULL;
 
 	LOGI("Erasing level\n");
 	if (level != NULL) {
@@ -446,8 +446,8 @@ void Minecraft::update() {
 		timer.advanceTime();
 	}
 
-	if (raknetInstance && !freezeGame) {
-		raknetInstance->runEvents(netCallback);
+	// VF_REMOVED: if (raknetInstance && !freezeGame) {
+	// VF_REMOVED: raknetInstance->runEvents(netCallback);
 	}
 
 	TIMER_PUSH("tick");
@@ -702,12 +702,12 @@ void Minecraft::tickInput() {
 						AdventureSettingsPacket p(level->adventureSettings);
 						p.toggle((AdventureSettingsPacket::Flags)(1 << slot));
 						p.fillIn(level->adventureSettings);
-						raknetInstance->send(p);
+	// VF_REMOVED: raknetInstance->send(p);
 					}
 					if (digit == 0) {
 						Pos pos((int)player->x, (int)player->y-1, (int)player->z);
 						SetSpawnPositionPacket p(pos);
-						raknetInstance->send(p);
+	// VF_REMOVED: raknetInstance->send(p);
 					}
 				#endif
 			}
@@ -932,14 +932,14 @@ void Minecraft::handleBuildAction(BuildActionIntention* action) {
 			player->swing();
 			//LOGI("attacking!\n");
 			InteractPacket packet(InteractPacket::Attack, player->entityId, hitResult.entity->entityId);
-			raknetInstance->send(packet);
+	// VF_REMOVED: raknetInstance->send(packet);
             gameMode->attack(player, hitResult.entity);
 		} else if (action->isInteract()) {
 			if (hitResult.entity->interactPreventDefault())
 				mayUse = false;
 			//LOGI("interacting!\n");
 			InteractPacket packet(InteractPacket::Interact, player->entityId, hitResult.entity->entityId);
-			raknetInstance->send(packet);
+	// VF_REMOVED: raknetInstance->send(packet);
             gameMode->interact(player, hitResult.entity);
         }
     } else if (hitResult.type == TILE) {
@@ -1008,7 +1008,7 @@ bool Minecraft::isOnlineClient()
 
 bool Minecraft::isOnline()
 {
-	return netCallback != NULL;
+	// VF_REMOVED: return netCallback != NULL;
 }
 
 void Minecraft::pauseGame(bool isBackPaused) {
@@ -1016,8 +1016,8 @@ void Minecraft::pauseGame(bool isBackPaused) {
 	// incoming connections (invisible server), which includes typical single-
 	// player/lobby mode. If the server is visible, the game should keep ticking.
 	bool canFreeze = false;
-	if (raknetInstance && raknetInstance->isServer() && netCallback) {
-		ServerSideNetworkHandler* ss = (ServerSideNetworkHandler*) netCallback;
+	// VF_REMOVED: if (raknetInstance && raknetInstance->isServer() && netCallback) {
+	// VF_REMOVED: ServerSideNetworkHandler* ss = (ServerSideNetworkHandler*) netCallback;
 		if (!ss->allowsIncomingConnections())
 			canFreeze = true;
 	}
@@ -1290,32 +1290,32 @@ void Minecraft::_reloadInput() {
 //
 // Multiplayer
 //
-void Minecraft::locateMultiplayer() {
+	// VF_REMOVED: void Minecraft::locateMultiplayer() {
 	isLookingForMultiplayer = true;
 
-	raknetInstance->pingForHosts(19132);
-	netCallback = new ClientSideNetworkHandler(this, raknetInstance);
+	// VF_REMOVED: raknetInstance->pingForHosts(19132);
+	// VF_REMOVED: netCallback = new ClientSideNetworkHandler(this, raknetInstance);
 }
 
-void Minecraft::cancelLocateMultiplayer() {
+	// VF_REMOVED: void Minecraft::cancelLocateMultiplayer() {
 	isLookingForMultiplayer = false;
 
-	raknetInstance->stopPingForHosts();
+	// VF_REMOVED: raknetInstance->stopPingForHosts();
 
-	delete netCallback;
-	netCallback = NULL;
+	// VF_REMOVED: delete netCallback;
+	// VF_REMOVED: netCallback = NULL;
 }
 
-bool Minecraft::joinMultiplayer( const PingedCompatibleServer& server )
+	// VF_REMOVED: bool Minecraft::joinMultiplayer( const PingedCompatibleServer& server )
 {
-	if (isLookingForMultiplayer && netCallback) {
+	// VF_REMOVED: if (isLookingForMultiplayer && netCallback) {
 		isLookingForMultiplayer = false;
-		return raknetInstance->connect(server.address.ToString(false), server.address.GetPort());
+	// VF_REMOVED: return raknetInstance->connect(server.address.ToString(false), server.address.GetPort());
 	}
 	return false;
 }
 
-bool Minecraft::joinMultiplayerFromString( const std::string& server )
+	// VF_REMOVED: bool Minecraft::joinMultiplayerFromString( const std::string& server )
 {	
 	std::string ip = "";
 	std::string port = "19132";
@@ -1331,27 +1331,27 @@ bool Minecraft::joinMultiplayerFromString( const std::string& server )
 
 	printf("%s \n", port.c_str());
 	
-	if (isLookingForMultiplayer && netCallback) {
+	// VF_REMOVED: if (isLookingForMultiplayer && netCallback) {
 		isLookingForMultiplayer = false;
 		printf("test");
 		int portNum = atoi(port.c_str());
-		return raknetInstance->connect(ip.c_str(), portNum);
+	// VF_REMOVED: return raknetInstance->connect(ip.c_str(), portNum);
 	}
 	return false;
 }
 
-void Minecraft::hostMultiplayer(int port) {
+	// VF_REMOVED: void Minecraft::hostMultiplayer(int port) {
     // Tear down last instance
-    raknetInstance->disconnect();
-    delete netCallback;
-    netCallback = NULL;
+	// VF_REMOVED: raknetInstance->disconnect();
+	// VF_REMOVED: delete netCallback;
+	// VF_REMOVED: netCallback = NULL;
 
 #if !defined(NO_NETWORK)
-	netCallback = new ServerSideNetworkHandler(this, raknetInstance);
+	// VF_REMOVED: netCallback = new ServerSideNetworkHandler(this, raknetInstance);
     #ifdef STANDALONE_SERVER
-        raknetInstance->host("Server", port, 16);
+	// VF_REMOVED: raknetInstance->host("Server", port, 16);
     #else
-        raknetInstance->host(options.getStringValue(OPTIONS_USERNAME), port);
+	// VF_REMOVED: raknetInstance->host(options.getStringValue(OPTIONS_USERNAME), port);
     #endif
 #endif
 }
@@ -1416,11 +1416,11 @@ void Minecraft::_levelGenerated()
 
 	std::string serverName = options.getStringValue(OPTIONS_USERNAME) + " - " + level->getLevelData()->levelName;
 
-	if (raknetInstance->isServer())
-		raknetInstance->announceServer(serverName);
+	// VF_REMOVED: if (raknetInstance->isServer())
+	// VF_REMOVED: raknetInstance->announceServer(serverName);
 
-	if (netCallback) {
-		netCallback->levelGenerated(level);
+	// VF_REMOVED: if (netCallback) {
+	// VF_REMOVED: netCallback->levelGenerated(level);
 	}
 
 #if defined(WIN32) || defined(RPI)
@@ -1477,7 +1477,7 @@ void Minecraft::respawnPlayer() {
 
 	// tell server (or other client) that we re-spawned
 	RespawnPacket packet(player);
-	raknetInstance->send(packet);
+	// VF_REMOVED: raknetInstance->send(packet);
 }
 
 void Minecraft::onGraphicsReset()
@@ -1590,8 +1590,8 @@ ICreator* Minecraft::getCreator()
 }
 
 void Minecraft::optionUpdated(OptionId option, bool value ) {
-	if(netCallback != NULL && option == OPTIONS_SERVER_VISIBLE) {
-		ServerSideNetworkHandler* ss = (ServerSideNetworkHandler*) netCallback;
+	// VF_REMOVED: if(netCallback != NULL && option == OPTIONS_SERVER_VISIBLE) {
+	// VF_REMOVED: ServerSideNetworkHandler* ss = (ServerSideNetworkHandler*) netCallback;
 		ss->allowIncomingConnections(value);
 	} else if (option == OPTIONS_USE_TOUCHSCREEN) {
 		_reloadInput();

@@ -40,7 +40,7 @@ void TextEditScreen::setupPositions() {
 bool TextEditScreen::handleBackEvent( bool isDown ) {
     sign->setChanged();
 	Packet* signUpdatePacket = sign->getUpdatePacket();
-	minecraft->raknetInstance->send(signUpdatePacket);
+ // VF_REMOVED: minecraft->raknetInstance->send(signUpdatePacket);
 	minecraft->platform()->hideKeyboard();
 	minecraft->setScreen(NULL);
 	return true;

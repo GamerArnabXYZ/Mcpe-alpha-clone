@@ -232,7 +232,7 @@ void SimpleChooseLevelScreen::buttonClicked( Button* button )
         std::string levelId = getUniqueLevelName(tLevelName.text);
         LevelSettings settings(seed, gamemode, cheatsEnabled);
         minecraft->selectLevel(levelId, levelId, settings);
-        minecraft->hostMultiplayer();
+        // VF_REMOVED: minecraft->hostMultiplayer();
         minecraft->setScreen(new ProgressScreen());
         hasChosen = true;
         return;

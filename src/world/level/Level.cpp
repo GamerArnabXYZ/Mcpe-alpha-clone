@@ -42,7 +42,7 @@ Level::Level(LevelStorage* levelStorage, const std::string& levelName, const Lev
 	_spawnFriendlies(true),
 	_spawnEnemies(true),
 	_lastSavedPlayerTime(0), // @attn: @time: clock starts on 0 now, change if not
-	raknetInstance(0),
+// VF_REMOVED: 	raknetInstance(0),
 	updatingTileEntities(false),
 	allPlayersAreSleeping(false),
 	_nightMode(false)
@@ -218,13 +218,13 @@ void Level::tick() {
 			if(curTime % TICKS_PER_DAY < MIDDLE_OF_NIGHT_TIME && (curTime + 20) % TICKS_PER_DAY > MIDDLE_OF_NIGHT_TIME) {
 				curTime = MIDDLE_OF_NIGHT_TIME;
 				SetTimePacket packet(curTime);
-				raknetInstance->send(packet);
+    // VF_REMOVED: raknetInstance->send(packet);
 			}
 			else {
 				curTime += 20;
 				if(curTime % 20  == 0) {
 					SetTimePacket packet(curTime);
-					raknetInstance->send(packet);
+     // VF_REMOVED: raknetInstance->send(packet);
 				}
 			}
 			setTime(curTime%TICKS_PER_DAY);
@@ -238,7 +238,7 @@ void Level::tick() {
 		levelData.setTime(time);
 		if ((time & 255) == 0) {
 			SetTimePacket packet(time);
-			raknetInstance->send(packet);
+   // VF_REMOVED: raknetInstance->send(packet);
 		}
 	}
 	TIMER_POP_PUSH("tickPending");
@@ -253,7 +253,7 @@ void Level::tick() {
 		SynchedEntityData* data = e->getEntityData();
 		if (data && data->isDirty()) {
 			SetEntityDataPacket packet(e->entityId, *data);
-			raknetInstance->send(packet);
+   // VF_REMOVED: raknetInstance->send(packet);
 		}
 	}
 
@@ -1690,7 +1690,7 @@ void Level::explode(Entity* source, float x, float y, float z, float r, bool fir
 		explosion.explode();
 		explosion.finalizeExplosion();
 		ExplodePacket packet(x, y, z, r, explosion.toBlow);
-		raknetInstance->send(packet);
+  // VF_REMOVED: raknetInstance->send(packet);
 	}
 }
 
@@ -2088,7 +2088,7 @@ void Level::broadcastEntityEvent(Entity* e, char eventId) {
 	if (isClientSide) return;
 
 	EntityEventPacket packet(e->entityId, eventId);
-	raknetInstance->send(packet);
+ // VF_REMOVED: raknetInstance->send(packet);
 }
 
 /*

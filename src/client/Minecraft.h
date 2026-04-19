@@ -33,7 +33,6 @@ class BuildActionIntention;
 class PerfRenderer;
 class LevelSettings;
 class CommandServer;
-struct PingedCompatibleServer;
 //class ExternalFileLevelStorageSource;
 
 
@@ -72,9 +71,6 @@ public:
 	LevelStorageSource* getLevelSource();
 
 	bool isLookingForMultiplayer;
-	bool joinMultiplayer(const PingedCompatibleServer& server);
-	bool joinMultiplayerFromString(const std::string& server);
-	void hostMultiplayer(int port=19132);
 	Player* respawnPlayer(int playerId);
 	void respawnPlayer();
 	void resetPlayer(Player* player);
