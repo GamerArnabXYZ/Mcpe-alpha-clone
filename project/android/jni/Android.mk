@@ -261,8 +261,7 @@ LOCAL_SRC_FILES := ../../../src/main.cpp \
 ../../../src/world/phys/HitResult.cpp
 
 LOCAL_CFLAGS := -DPLATFORM_ANDROID -DPRE_ANDROID23 -Wno-narrowing $(LOCAL_CFLAGS)
-LOCAL_CPPFLAGS := -std=c++14 -frtti
-LOCAL_CPPFLAGS += -frtti
+LOCAL_CPPFLAGS := -std=c++14 -frtti -fexceptions
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../src
 
 #LOCAL_CFLAGS := -DANDROID_PUBLISH -DDEMO_MODE $(LOCAL_CFLAGS)
@@ -276,7 +275,9 @@ LOCAL_STATIC_LIBRARIES := android_native_app_glue RakNet
 
 #LOCAL_CPP_FEATURES := exceptions
 
-TARGET_ARCH_ABI := armeabi-v7a
+# NOTE: TARGET_ARCH_ABI is controlled by APP_ABI in Application.mk
+# or passed explicitly via ndk-build APP_ABI=arm64-v8a / armeabi-v7a.
+# Do NOT hardcode it here — it breaks matrix CI builds.
 
 include $(BUILD_SHARED_LIBRARY)
 

@@ -1,5 +1,5 @@
 name: Setup Ninja
-description: Sets up Ninja
+description: Sets up Ninja build system
 
 inputs:
   host:
@@ -9,9 +9,23 @@ inputs:
 runs:
   using: "composite"
   steps:
-  - name: Setup
+  - name: Install Ninja (apt — fastest on ubuntu-latest)
+    if: inputs.host == 'linux'
     shell: bash
     run: |
-      curl -L https://github.com/ninja-build/ninja/releases/latest/download/ninja-${{ inputs.host }}.zip -o ninja.zip
-      7z x ninja.zip -o"$GITHUB_WORKSPACE/ninja"
-      echo "$GITHUB_WORKSPACE/ninja" >> $GITHUB_PATH
+      sudo apt-get install -y --no-install-recommends ninja-build
+      echo "Ninja version: $(ninja --version)"
+
+  - name: Install Ninja (win)
+    if: inputs.host == 'win'
+    shell: pwsh
+    run: |
+      choco install ninja -y --no-progress
+      echo "Ninja version: $(ninja --version)"
+
+  - name: Install Ninja (mac)
+    if: inputs.host == 'mac'
+    shell: bash
+    run: |
+      brew install ninja
+      echo "Ninja version: $(ninja --version)"

@@ -117,7 +117,7 @@ fi
 
 KEYTOOL=""  # will be detected later
 
-# swource directories
+# source directories
 JNI_DIR="$REPO_ROOT/project/android/jni"
 JAVA_SRC_DIR="$REPO_ROOT/project/android_java/src"
 ANDROID_MANIFEST="$REPO_ROOT/project/android_java/AndroidManifest.xml"
@@ -155,11 +155,6 @@ EOF
 
 function log_step() {
   echo -e "\n==> $1"
-}
-
-function fail() {
-  echo "ERROR: $1" >&2
-  exit 1
 }
 
 function require_cmd() {
@@ -300,8 +295,11 @@ if [[ ! -x "$DEX_TOOL" ]]; then
   fail "d8 not found at $DEX_TOOL"
 fi
 
+# ADB is optional: if set to /bin/true (CI) or missing, install step is skipped.
+ADB_AVAILABLE=true
 if [[ ! -x "$ADB" ]]; then
-  fail "adb not found at $ADB"
+  echo "WARNING: adb not found at $ADB — install step will be skipped." >&2
+  ADB_AVAILABLE=false
 fi
 
 ########################################
@@ -444,12 +442,18 @@ rm -rf "$TMP_ASSETS_DIR"
 echo "  signed -> $APK_SIGNED"
 
 ########################################
-# install
+# install (skipped in CI / if adb unavailable)
 ########################################
 log_step "Install"
 
-"$ADB" shell am force-stop "$PACKAGE_NAME" || true
-"$ADB" uninstall "$PACKAGE_NAME" || true
-"$ADB" install --no-incremental "$APK_SIGNED"
+if [[ "$ADB_AVAILABLE" == true ]]; then
+  "$ADB" shell am force-stop "$PACKAGE_NAME" || true
+  "$ADB" uninstall "$PACKAGE_NAME" || true
+  "$ADB" install --no-incremental "$APK_SIGNED"
+  echo "  installed on device."
+else
+  echo "  adb not available — skipping device install."
+  echo "  APK ready at: $APK_SIGNED"
+fi
 
 echo -e "\nDone. Enjoy MCPE 0.6.1 on your device!"

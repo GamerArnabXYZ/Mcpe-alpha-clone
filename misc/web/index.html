@@ -36,7 +36,7 @@
   }
 
   window.addEventListener('resize', resizeCanvas);
-  window.addEventListener('onunload', () => {
+  window.addEventListener('beforeunload', () => {
     FS.syncfs(true, function (err) { console.log('Sync FS failed: ' + err) });
   })
 </script>
