@@ -3,7 +3,7 @@
  *  oxeye
  *
  *  Created by aegzorz on 2007-02-09.
- *  Copyright 2007 GAX Studios AB. All rights reserved.
+ *  Copyright 2007 Mojang AB. All rights reserved.
  *
  */
 

@@ -1,4 +1,5 @@
 #include "SignTileEntity.h"
+#include "../../../../network/packet/SignUpdatePacket.h"
 #include "../../Level.h"
 SignTileEntity::SignTileEntity()
 :   super(TileEntityType::Sign),

@@ -13,11 +13,14 @@
 
 #include "../../nbt/CompoundTag.h"
 
+#include "../../network/RakNetInstance.h"
+#include "../../network/packet/MoveEntityPacket.h"
 #include "ai/control/MoveControl.h"
 #include "ai/control/JumpControl.h"
 #include "ai/PathNavigation.h"
 #include "ai/Sensing.h"
 #include "ai/goal/GoalSelector.h"
+#include "../../network/packet/SetEntityMotionPacket.h"
 #include "../item/ArmorItem.h"
 
 
@@ -233,7 +236,7 @@ void Mob::baseTick()
 		if (autoSendPosRot) {
 			if (autoSendPosRot && (std::abs(x - sentX) > .1f || std::abs(y - sentY) > .05f || std::abs(z - sentZ) > .1f || std::abs(sentRotX - xRot) > 1 || std::abs(sentRotY - yRot) > 1)) {
 				MoveEntityPacket_PosRot packet(this);
-    // VF_REMOVED: level->raknetInstance->send(packet);
+				level->raknetInstance->send(packet);
 				sentX = x;
 				sentY = y;
 				sentZ = z;
@@ -252,7 +255,7 @@ void Mob::baseTick()
 			sentYd = yd;
 			sentZd = zd;
 			SetEntityMotionPacket packet(this);
-   // VF_REMOVED: level->raknetInstance->send(packet);
+			level->raknetInstance->send(packet);
 			//LOGI("Motion-packet: %d\n", entityId);
 		}
 	}

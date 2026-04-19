@@ -20,9 +20,14 @@
 
 #include "biome/Biome.h"
 #include "MobSpawner.h"
+#include "../../network/packet/SetEntityDataPacket.h"
+#include "../../network/RakNetInstance.h"
+#include "../../network/packet/EntityEventPacket.h"
+#include "../../network/packet/SetTimePacket.h"
 #include "../entity/monster/Zombie.h"
 #include "../inventory/BaseContainerMenu.h"
 #include "../Difficulty.h"
+#include "../../network/packet/ExplodePacket.h"
 
 Level::Level(LevelStorage* levelStorage, const std::string& levelName, const LevelSettings& settings, int generatorVersion, Dimension* fixedDimension /* = NULL */)
 	:	levelStorage(levelStorage),
@@ -42,7 +47,7 @@ Level::Level(LevelStorage* levelStorage, const std::string& levelName, const Lev
 	_spawnFriendlies(true),
 	_spawnEnemies(true),
 	_lastSavedPlayerTime(0), // @attn: @time: clock starts on 0 now, change if not
-// VF_REMOVED: 	raknetInstance(0),
+	raknetInstance(0),
 	updatingTileEntities(false),
 	allPlayersAreSleeping(false),
 	_nightMode(false)
@@ -218,13 +223,13 @@ void Level::tick() {
 			if(curTime % TICKS_PER_DAY < MIDDLE_OF_NIGHT_TIME && (curTime + 20) % TICKS_PER_DAY > MIDDLE_OF_NIGHT_TIME) {
 				curTime = MIDDLE_OF_NIGHT_TIME;
 				SetTimePacket packet(curTime);
-    // VF_REMOVED: raknetInstance->send(packet);
+				raknetInstance->send(packet);
 			}
 			else {
 				curTime += 20;
 				if(curTime % 20  == 0) {
 					SetTimePacket packet(curTime);
-     // VF_REMOVED: raknetInstance->send(packet);
+					raknetInstance->send(packet);
 				}
 			}
 			setTime(curTime%TICKS_PER_DAY);
@@ -238,7 +243,7 @@ void Level::tick() {
 		levelData.setTime(time);
 		if ((time & 255) == 0) {
 			SetTimePacket packet(time);
-   // VF_REMOVED: raknetInstance->send(packet);
+			raknetInstance->send(packet);
 		}
 	}
 	TIMER_POP_PUSH("tickPending");
@@ -253,7 +258,7 @@ void Level::tick() {
 		SynchedEntityData* data = e->getEntityData();
 		if (data && data->isDirty()) {
 			SetEntityDataPacket packet(e->entityId, *data);
-   // VF_REMOVED: raknetInstance->send(packet);
+			raknetInstance->send(packet);
 		}
 	}
 
@@ -1690,7 +1695,7 @@ void Level::explode(Entity* source, float x, float y, float z, float r, bool fir
 		explosion.explode();
 		explosion.finalizeExplosion();
 		ExplodePacket packet(x, y, z, r, explosion.toBlow);
-  // VF_REMOVED: raknetInstance->send(packet);
+		raknetInstance->send(packet);
 	}
 }
 
@@ -2088,7 +2093,7 @@ void Level::broadcastEntityEvent(Entity* e, char eventId) {
 	if (isClientSide) return;
 
 	EntityEventPacket packet(e->entityId, eventId);
- // VF_REMOVED: raknetInstance->send(packet);
+	raknetInstance->send(packet);
 }
 
 /*

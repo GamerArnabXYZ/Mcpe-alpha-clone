@@ -11,6 +11,8 @@
 #include "../level/Level.h"
 #include "../level/tile/Tile.h"
 
+#include "../../network/RakNetInstance.h"
+#include "../../network/packet/PlaceBlockPacket.h"
 
 class TileItem: public Item
 {
@@ -63,7 +65,7 @@ public:
 /*
 				PlaceBlockPacket packet(player->entityId, x, y, z, face, tileId, instance->getAuxValue());
 				//LOGI("Place block at @ %d, %d, %d\n", x, y, z);
-    // VF_REMOVED: level->raknetInstance->send(packet);
+				level->raknetInstance->send(packet);
 */
                 instance->count--;
             }

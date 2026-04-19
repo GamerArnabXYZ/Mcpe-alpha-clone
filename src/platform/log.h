@@ -18,10 +18,10 @@
 		#define LOGE(fmt, ...) __LOG_PUBLISH(__VA_ARGS__)
 	#else
 		// @todo @fix; Obiously the tag shouldn't be hardcoded in here..
-		#define LOGV(...) ((void)__android_log_print( ANDROID_LOG_VERBOSE, "VoxelForge", __VA_ARGS__ ))
-		#define LOGI(...) ((void)__android_log_print( ANDROID_LOG_INFO,  "VoxelForge", __VA_ARGS__ ))
-		#define LOGW(...) ((void)__android_log_print( ANDROID_LOG_WARN,  "VoxelForge", __VA_ARGS__ ))
-		#define LOGE(...) ((void)__android_log_print( ANDROID_LOG_ERROR, "VoxelForge", __VA_ARGS__ ))
+		#define LOGV(...) ((void)__android_log_print( ANDROID_LOG_VERBOSE, "MinecraftPE", __VA_ARGS__ ))
+		#define LOGI(...) ((void)__android_log_print( ANDROID_LOG_INFO,  "MinecraftPE", __VA_ARGS__ ))
+		#define LOGW(...) ((void)__android_log_print( ANDROID_LOG_WARN,  "MinecraftPE", __VA_ARGS__ ))
+		#define LOGE(...) ((void)__android_log_print( ANDROID_LOG_ERROR, "MinecraftPE", __VA_ARGS__ ))
 		#define printf LOGI
 	#endif
 #else

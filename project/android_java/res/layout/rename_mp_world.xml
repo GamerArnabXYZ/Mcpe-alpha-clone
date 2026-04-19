@@ -12,7 +12,7 @@
         		android:layout_height="24dp"
         		android:typeface="monospace"
         		/>
-	<com.gax.android.EditTextAscii
+	<com.mojang.android.EditTextAscii
 				android:id="@+id/editText_worldNameRename"
 				android:text="@string/renameworld_saved_world"
 				android:layout_width="360dp"

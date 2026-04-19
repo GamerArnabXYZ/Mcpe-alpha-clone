@@ -57,7 +57,7 @@
 
 
 
-            <com.gax.android.EditTextAscii
+            <com.mojang.android.EditTextAscii
                 android:id="@+id/editText_worldName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -67,7 +67,7 @@
                 android:typeface="monospace" >
 
                 <requestFocus />
-            </com.gax.android.EditTextAscii>
+            </com.mojang.android.EditTextAscii>
 
             <View
                 android:id="@+id/view1"
@@ -84,7 +84,7 @@
             android:layout_height="50dp"
             android:gravity="center_horizontal">
 
-            <com.gax.voxelforge.GameModeButton
+            <com.mojang.minecraftpe.GameModeButton
                 android:id="@+id/button_gameMode"
                 android:layout_width="173dp"
                 android:layout_height="46dp"

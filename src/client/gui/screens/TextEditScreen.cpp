@@ -8,6 +8,7 @@
 #include "../../renderer/GameRenderer.h"
 #include "../components/Button.h"
 #include "../../../network/Packet.h"
+#include "../../../network/RakNetInstance.h"
 TextEditScreen::TextEditScreen( SignTileEntity* signEntity )
  : sign(signEntity), isShowingKeyboard(false), frame(0), line(0), btnClose(1, "") {
 
@@ -40,7 +41,7 @@ void TextEditScreen::setupPositions() {
 bool TextEditScreen::handleBackEvent( bool isDown ) {
     sign->setChanged();
 	Packet* signUpdatePacket = sign->getUpdatePacket();
- // VF_REMOVED: minecraft->raknetInstance->send(signUpdatePacket);
+	minecraft->raknetInstance->send(signUpdatePacket);
 	minecraft->platform()->hideKeyboard();
 	minecraft->setScreen(NULL);
 	return true;

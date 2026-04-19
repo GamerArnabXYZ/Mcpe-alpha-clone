@@ -9,6 +9,15 @@
 #include "../../world/level/tile/Tile.h"
 #include "../../world/level/tile/entity/TileEntity.h"
 #include "../../world/level/material/Material.h"
+#include "../../network/packet/ContainerClosePacket.h"
+#include "../../network/packet/MovePlayerPacket.h"
+#include "../../network/packet/PlayerEquipmentPacket.h"
+#include "../../network/RakNetInstance.h"
+#include "../../network/packet/DropItemPacket.h"
+#include "../../network/packet/SetHealthPacket.h"
+#include "../../network/packet/SendInventoryPacket.h"
+#include "../../network/packet/EntityEventPacket.h"
+#include "../../network/packet/PlayerActionPacket.h"
 #include <vector>
 #include <cctype>
 #include "../../platform/log.h"
@@ -36,7 +45,9 @@
 #include "../gui/screens/TextEditScreen.h"
 #include "../particle/TakeAnimationParticle.h"
 #endif
+#include "../../network/packet/AnimatePacket.h"
 #include "../../world/item/ArmorItem.h"
+#include "../../network/packet/PlayerArmorEquipmentPacket.h"
 
 namespace {
 #ifndef STANDALONE_SERVER
@@ -117,7 +128,7 @@ static std::string getTextureUrlForUsername(const std::string& username, const s
     std::string response(body.begin(), body.end());
     std::string uuid = extractJsonString(response, "id");
     if (uuid.empty()) {
-        LOGW("[%s] no UUID found in GAX Studios response for %s\n", textureKey.c_str(), username.c_str());
+        LOGW("[%s] no UUID found in Mojang response for %s\n", textureKey.c_str(), username.c_str());
         return "";
     }
 
@@ -355,7 +366,7 @@ LocalPlayer::LocalPlayer(Minecraft* minecraft, Level* level, const std::string& 
 
 		this->name = minecraft->options.getStringValue(OPTIONS_USERNAME);
 		printf("test \n");
-		// Fetch user skin and cape from GAX Studios servers in the background (avoids blocking the main thread)
+		// Fetch user skin and cape from Mojang servers in the background (avoids blocking the main thread)
 		// TODO: Fix this memory leak
 		new CThread(fetchSkinForPlayer, this);
 		new CThread(fetchCapeForPlayer, this);
@@ -415,7 +426,7 @@ void LocalPlayer::tick() {
 					completeUsingItem();
 				} else {
 					EntityEventPacket p(entityId, EntityEvent::USE_ITEM_COMPLETE);
-     // VF_REMOVED: level->raknetInstance->send(p);
+					level->raknetInstance->send(p);
 				}
 			}
 		}
@@ -428,7 +439,7 @@ void LocalPlayer::tick() {
 		if (std::abs(x - sentX) > .1f || std::abs(y - sentY) > .01f || std::abs(z - sentZ) > .1f || std::abs(sentRotX - xRot) > 1 || std::abs(sentRotY - yRot) > 1)
 		{
 			MovePlayerPacket packet(entityId, x, y - heightOffset, z, xRot, yRot);
-   // VF_REMOVED: minecraft->raknetInstance->send(packet);
+			minecraft->raknetInstance->send(packet);
 			sentX = x;
 			sentY = y;
 			sentZ = z;
@@ -446,7 +457,7 @@ void LocalPlayer::tick() {
 			sentInventoryItemId   = newItemId;
 			sentInventoryItemData = newItemData;
 			PlayerEquipmentPacket packet(entityId, newItemId, newItemData);
-   // VF_REMOVED: minecraft->raknetInstance->send(packet);
+			minecraft->raknetInstance->send(packet);
 		}
 	}
 /*
@@ -548,7 +559,7 @@ void LocalPlayer::aiStep() {
 void LocalPlayer::closeContainer() {
 	if (level->isClientSide) {
 		ContainerClosePacket packet(containerMenu->containerId);
-  // VF_REMOVED: minecraft->raknetInstance->send(packet);
+		minecraft->raknetInstance->send(packet);
 	}
 	super::closeContainer();
     minecraft->setScreen(NULL);
@@ -703,7 +714,7 @@ void LocalPlayer::die(Entity* source)
 	// If we're the server, drop the inventory immediately
 	if (level->isClientSide) {
 		SendInventoryPacket packet(this, true);
-  // VF_REMOVED: minecraft->raknetInstance->send(packet);
+		minecraft->raknetInstance->send(packet);
 	}
 	inventory->dropAll(level->isClientSide);
 	for (int i = 0; i < NUM_ARMOR; ++i) {
@@ -724,7 +735,7 @@ void LocalPlayer::swing() {
         AnimatePacket packet(AnimatePacket::Swing, this);
         packet.reliability = UNRELIABLE;
         packet.priority = MEDIUM_PRIORITY;
-        // VF_REMOVED: minecraft->raknetInstance->send(packet);
+        minecraft->raknetInstance->send(packet);
     }
 }
 
@@ -781,7 +792,7 @@ void LocalPlayer::drop( ItemInstance* item, bool randomly )
 
 	if (level->isClientSide) {
 		DropItemPacket packet(entityId, *item);
-  // VF_REMOVED: minecraft->raknetInstance->send(packet);
+		minecraft->raknetInstance->send(packet);
 		// delete the ItemEntity here, since we don't add it to level
 		delete item;
 	} else {
@@ -795,7 +806,7 @@ void LocalPlayer::causeFallDamage( float distance )
 	if (dmg > 0) {
 		if (level->isClientSide) {
 			SetHealthPacket packet(SetHealthPacket::HEALTH_MODIFY_OFFSET + dmg);
-   // VF_REMOVED: minecraft->raknetInstance->send(packet);
+			minecraft->raknetInstance->send(packet);
 		}
 	}
 	super::causeFallDamage(distance);
@@ -820,7 +831,7 @@ int LocalPlayer::startSleepInBed( int x, int y, int z ) {
 void LocalPlayer::stopSleepInBed( bool forcefulWakeUp, bool updateLevelList, bool saveRespawnPoint ) {
 	if(level->isClientSide) {
 		PlayerActionPacket packet(PlayerActionPacket::STOP_SLEEPING, 0, 0, 0, 0, entityId);
-  // VF_REMOVED: minecraft->raknetInstance->send(packet);
+		minecraft->raknetInstance->send(packet);
 	}
 #ifndef STANDALONE_SERVER
 	minecraft->setScreen(NULL);
@@ -839,7 +850,7 @@ void LocalPlayer::updateArmorTypeHash() {
     int hash = getArmorTypeHash();
     if (hash != armorTypeHash) {
         PlayerArmorEquipmentPacket p(this);
-        // VF_REMOVED: minecraft->raknetInstance->send(p);
+        minecraft->raknetInstance->send(p);
         armorTypeHash = hash;
     }
 }

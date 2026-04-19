@@ -80,7 +80,7 @@ void StartMenuScreen::init()
 		tabButtons.push_back(&bBuy);
 	#endif
 
-	copyright = "\xffGAX Studios AB";//. Do not distribute!";
+	copyright = "\xffMojang AB";//. Do not distribute!";
 
 	// always show base version string
 	std::string versionString = Common::getGameVersionString();
@@ -146,7 +146,7 @@ void StartMenuScreen::buttonClicked(::Button* button) {
         #ifdef APPLE_DEMO_PROMOTION
             minecraft->platform()->createUserInput(DialogDefinitions::DIALOG_DEMO_FEATURE_DISABLED);
         #else
-            // VoxelForge: multiplayer removed
+            minecraft->locateMultiplayer();
             minecraft->screenChooser.setScreen(SCREEN_JOINGAME);
         #endif
 	}

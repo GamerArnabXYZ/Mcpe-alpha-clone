@@ -7,6 +7,7 @@
 #include "../level/Level.h"
 #include "../entity/player/Player.h"
 #include "../../SharedConstants.h"
+#include "../../network/packet/SetHealthPacket.h"
 //#include "../effect/MobEffectInstance.h"
 //#include "../food/FoodConstants.h"
 

@@ -7,6 +7,8 @@
 #include "../../inventory/BaseContainerMenu.h"
 #include "../../../nbt/CompoundTag.h"
 
+#include "../../../network/RakNetInstance.h"
+#include "../../../network/packet/AnimatePacket.h"
 #include "../../inventory/FurnaceMenu.h"
 #include "../SharedFlags.h"
 #include "../../level/tile/BedTile.h"

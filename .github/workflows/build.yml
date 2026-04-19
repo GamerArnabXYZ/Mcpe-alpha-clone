@@ -95,7 +95,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: voxelforge-apk-${{ matrix.abi }}
+          name: minecraftpe-apk-${{ matrix.abi }}
           path: ${{ github.workspace }}/build-apk/minecraftpe-*-debug.apk
 
   build-web:
@@ -132,16 +132,16 @@ jobs:
 
       - name: Build
         working-directory: ${{github.workspace}}/build
-        run: cmake --build . --config $BUILD_TYPE --target VoxelForge --parallel
+        run: cmake --build . --config $BUILD_TYPE --target MinecraftPE --parallel
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: voxelforge-web
+          name: mcpe-web
           path: |
-            ${{github.workspace}}/build/VoxelForge.js
-            ${{github.workspace}}/build/VoxelForge.wasm
-            ${{github.workspace}}/build/VoxelForge.data
+            ${{github.workspace}}/build/MinecraftPE.js
+            ${{github.workspace}}/build/MinecraftPE.wasm
+            ${{github.workspace}}/build/MinecraftPE.data
 
   publish:
     name: Publish
@@ -162,14 +162,14 @@ jobs:
 
       - name: Rename Android Artifacts
         run: |
-          mv voxelforge-apk-arm64-v8a/voxelforge-v8a-debug.apk voxelforge-${{ steps.ref.outputs.hash }}-android-arm64-v8a.apk
-          mv voxelforge-apk-armeabi-v7a/voxelforge-v7a-debug.apk voxelforge-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.apk
+          mv minecraftpe-apk-arm64-v8a/minecraftpe-v8a-debug.apk minecraftpe-${{ steps.ref.outputs.hash }}-android-arm64-v8a.apk
+          mv minecraftpe-apk-armeabi-v7a/minecraftpe-v7a-debug.apk minecraftpe-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.apk
 
       - name: Zip Web Artifact
         uses: vimtor/action-zip@v1.2
         with:
-          files: voxelforge-web/VoxelForge.js voxelforge-web/VoxelForge.wasm voxelforge-web/VoxelForge.data misc/web/index.html
-          dest: voxelforge-${{ steps.ref.outputs.hash }}-web.zip
+          files: mcpe-web/MinecraftPE.js mcpe-web/MinecraftPE.wasm mcpe-web/MinecraftPE.data misc/web/index.html
+          dest: minecraftpe-${{ steps.ref.outputs.hash }}-web.zip
 
       - name: Zip Data
         uses: vimtor/action-zip@v1.2
@@ -186,9 +186,9 @@ jobs:
           tag_name: dev
           name: 'Development Release'
           body: |
-            VoxelForge development release for commit ${{ github.sha }}.
+            MinecraftPE development release for commit ${{ github.sha }}.
           files: |
             ./data.zip
-            ./voxelforge-${{ steps.ref.outputs.hash }}-android-arm64-v8a.apk
-            ./voxelforge-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.apk
-            ./voxelforge-${{ steps.ref.outputs.hash }}-web.zip
+            ./minecraftpe-${{ steps.ref.outputs.hash }}-android-arm64-v8a.apk
+            ./minecraftpe-${{ steps.ref.outputs.hash }}-android-armeabi-v7a.apk
+            ./minecraftpe-${{ steps.ref.outputs.hash }}-web.zip

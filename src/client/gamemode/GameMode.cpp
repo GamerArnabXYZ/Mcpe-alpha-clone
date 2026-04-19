@@ -1,5 +1,7 @@
 #include "GameMode.h"
 #include "../Minecraft.h"
+#include "../../network/packet/UseItemPacket.h"
+#include "../../network/packet/PlayerActionPacket.h"
 #include "../../world/level/Level.h"
 #include "../../world/item/ItemInstance.h"
 #include "../player/LocalPlayer.h"
@@ -8,6 +10,8 @@
 #include "../sound/SoundEngine.h"
 #include "../particle/ParticleEngine.h"
 #endif
+#include "../../network/RakNetInstance.h"
+#include "../../network/packet/RemoveBlockPacket.h"
 #ifndef STANDALONE_SERVER
 #include "../renderer/LevelRenderer.h"
 #endif
@@ -75,7 +79,7 @@ bool GameMode::destroyBlock(int x, int y, int z, int face) {
 
 		if (minecraft->isOnline()) {
 			RemoveBlockPacket packet(minecraft->player, x, y, z);
-   // VF_REMOVED: minecraft->raknetInstance->send(packet);
+			minecraft->raknetInstance->send(packet);
 		}
 	}
     return changed;
@@ -88,7 +92,7 @@ bool GameMode::useItemOn(Player* player, Level* level, ItemInstance* item, int x
 	if (level->isClientSide) {
 		item = player->inventory->getSelected();
 		UseItemPacket packet(x, y, z, face, item, player->entityId, clickX, clickY, clickZ);
-  // VF_REMOVED: minecraft->raknetInstance->send(packet);
+		minecraft->raknetInstance->send(packet);
 	}
     int t = level->getTile(x, y, z);
 	if (t == Tile::invisible_bedrock->id) return false;
@@ -114,7 +118,7 @@ bool GameMode::useItem( Player* player, Level* level, ItemInstance* item ) {
 	ItemInstance* itemInstance = item->use(level, player);
 	if(level->isClientSide) {
 		UseItemPacket packet(item, player->entityId, player->aimDirection);
-  // VF_REMOVED: minecraft->raknetInstance->send(packet);
+		minecraft->raknetInstance->send(packet);
 	}
 	if (itemInstance != item || (itemInstance != NULL && itemInstance->count != oldCount)) {
 	    //player.inventory.items[player.inventory.selected] = itemInstance;
@@ -147,7 +151,7 @@ void GameMode::initPlayer( Player* player ) {
 void GameMode::releaseUsingItem(Player* player){
 	if (minecraft->level->isClientSide && player->isUsingItem()) {
 		PlayerActionPacket packet(PlayerActionPacket::RELEASE_USE_ITEM,  0, 0, 0, 0, player->entityId);
-  // VF_REMOVED: minecraft->raknetInstance->send(packet);
+		minecraft->raknetInstance->send(packet);
 	}
 	player->releaseUsingItem();
 }

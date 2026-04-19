@@ -13,6 +13,8 @@
 #include "../../../world/level/Level.h"
 #include "../../../locale/I18n.h"
 #include "../../../util/StringUtils.h"
+#include "../../../network/packet/ContainerSetSlotPacket.h"
+#include "../../../network/RakNetInstance.h"
 #include "../../../world/level/tile/entity/TileEntity.h"
 #include "../../../world/level/tile/entity/ChestTileEntity.h"
 #include "../../../world/inventory/ContainerMenu.h"
@@ -355,7 +357,7 @@ bool ChestScreen::handleAddItem(FillingContainer* from, FillingContainer* to, in
 					int j = toIndex;
 					ItemInstance item = items[j]? *items[j] : ItemInstance();
 					ContainerSetSlotPacket p(menu->containerId, j, item);
-     // VF_REMOVED: minecraft->raknetInstance->send(p);
+					minecraft->raknetInstance->send(p);
 				}
 			}
 		}
@@ -364,7 +366,7 @@ bool ChestScreen::handleAddItem(FillingContainer* from, FillingContainer* to, in
 		if (fromChest) {
 			ItemInstance ins(item->count <= 0? ItemInstance() : *item);
 			ContainerSetSlotPacket p(menu->containerId, slotIndex, ins);
-   // VF_REMOVED: minecraft->raknetInstance->send(p);
+			minecraft->raknetInstance->send(p);
 		}
 		if (item->count <= 0)
 			from->clearSlot(slotIndex);

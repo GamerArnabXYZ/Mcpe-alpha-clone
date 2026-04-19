@@ -3,6 +3,8 @@
 #include "client/Options.h"
 #include "platform/input/Keyboard.h"
 #include "screens/IngameBlockSelectionScreen.h"
+#include "screens/ChatScreen.h"
+#include "screens/ConsoleScreen.h"
 #include "../Minecraft.h"
 #include "../player/LocalPlayer.h"
 #include "../renderer/Tesselator.h"

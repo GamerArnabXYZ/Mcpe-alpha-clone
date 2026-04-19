@@ -20,7 +20,7 @@ class RegionFile;
 typedef struct UnsavedLevelChunk
 {
 	int				pos;
-	uint64_t	addedToList;
+	RakNet::TimeMS	addedToList;
 	LevelChunk*		chunk;
 } UnsavedLevelChunk;
 

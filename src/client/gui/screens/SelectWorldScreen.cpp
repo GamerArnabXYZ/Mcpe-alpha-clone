@@ -291,7 +291,7 @@ void SelectWorldScreen::tick()
 
 	if (worldsList->hasPickedLevel) {
 		minecraft->selectLevel(worldsList->pickedLevel.id, worldsList->pickedLevel.name, LevelSettings::None());
-  // VF_REMOVED: minecraft->hostMultiplayer();
+		minecraft->hostMultiplayer();
 		minecraft->setScreen(new ProgressScreen());
 		_hasStartedLevel = true;
 		return;

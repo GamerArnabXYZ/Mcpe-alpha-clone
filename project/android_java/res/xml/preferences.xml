@@ -40,7 +40,7 @@
     <PreferenceCategory
         android:title="Controls">
 
-        <com.gax.android.preferences.SliderPreference
+        <com.mojang.android.preferences.SliderPreference
             android:key="ctrl_sensitivity"
             android:title="@string/mmoptions_ctrl_sensitivity_title"
             android:max="100"

@@ -26,7 +26,7 @@ void SimpleFoodData::tick( Player* player ) {
 			player->heal(healAmount);
 		} else {
 			SetHealthPacket packet(SetHealthPacket::HEALTH_MODIFY_OFFSET - healAmount);
-   // VF_REMOVED: level->raknetInstance->send(packet);
+			level->raknetInstance->send(packet);
 		}
 		*/
 	}

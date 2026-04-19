@@ -18,6 +18,8 @@
 #include "../../../locale/I18n.h"
 #include "../../../util/StringUtils.h"
 #include "../../../world/inventory/FurnaceMenu.h"
+#include "../../../network/packet/ContainerSetSlotPacket.h"
+#include "../../../network/RakNetInstance.h"
 
 static int heldMs = -1;
 static int percent = -1;
@@ -510,7 +512,7 @@ void FurnaceScreen::takeAndClearSlot( int slot )
 	furnace->setItem(slot, &blank);
 	if (minecraft->level->isClientSide) {
 		ContainerSetSlotPacket p(menu->containerId, slot, blank);
-  // VF_REMOVED: minecraft->raknetInstance->send(p);
+		minecraft->raknetInstance->send(p);
 	}
 
 	int oldSize = minecraft->player->inventory->getNumEmptySlots();
@@ -545,7 +547,7 @@ bool FurnaceScreen::handleAddItem( int slot, const ItemInstance* item )
 	 
 	if (minecraft->level->isClientSide) {
 		ContainerSetSlotPacket p(menu->containerId, slot, *furnaceItem);
-  // VF_REMOVED: minecraft->raknetInstance->send(p);
+		minecraft->raknetInstance->send(p);
 	}
 
 	int newSize = minecraft->player->inventory->getNumEmptySlots();

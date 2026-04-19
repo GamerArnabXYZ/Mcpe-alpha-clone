@@ -31,8 +31,8 @@ void CreditsScreen::init() {
     // TODO: rewrite it
     // prepare text lines
     _lines.clear();
-    _lines.push_back("VoxelForge");
-    _lines.push_back("An original voxel adventure");
+    _lines.push_back("Minecraft: Pocket Edition");
+    _lines.push_back("Original game by Mojang");
     _lines.push_back("");
     _lines.push_back("Programmers:");
     _lines.push_back("mschiller890");

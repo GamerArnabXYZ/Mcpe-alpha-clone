@@ -18,6 +18,7 @@
 //#include "world/level/storage/FolderMethods.h"
 #ifndef STANDALONE_SERVER
 #include "client/gui/screens/StartMenuScreen.h"
+#include "client/gui/screens/UsernameScreen.h"
 #endif
 #include "client/player/LocalPlayer.h"
 #ifndef STANDALONE_SERVER
@@ -28,6 +29,8 @@
 #endif
 // sorry for raknet dependency, but I'm too lazy to find another getTime method
 #include "raknet/GetTime.h"
+#include "network/RakNetInstance.h"
+#include "network/ClientSideNetworkHandler.h"
 #include "client/gui/screens/ProgressScreen.h"
 
 //#include "world/entity/player/Inventory2.h"
@@ -114,10 +117,10 @@ void NinecraftApp::init()
 
 	if (options.getBooleanValue(OPTIONS_FIRST_LAUNCH)) {
 		options.toggle(OPTIONS_FIRST_LAUNCH);
-		// VoxelForge: no username screen, just start
+		setScreen(new UsernameScreen());
 	}
 #else
- // VF_REMOVED: hostMultiplayer();
+	hostMultiplayer();
 #endif
 }
 
@@ -160,7 +163,10 @@ void NinecraftApp::update()
 	swapBuffers();
 	Mouse::reset2();
 
-    // VoxelForge: multiplayer server restart removed
+    // Restart the server if (our modded) RakNet reports an error
+    if (level && raknetInstance->isProbablyBroken() && raknetInstance->isServer()) {
+        restartServer();
+    }
 
 #ifndef WIN32
 	updateStats();
@@ -263,10 +269,12 @@ void NinecraftApp::restartServer() {
             level->removeEntity(p);
     }
 
-	// VoxelForge: multiplayer restart not needed
+	raknetInstance->resetIsBroken();
 #ifndef STANDALONE_SERVER
-    // gui.addMessage("This server has restarted!");
+    gui.addMessage("This server has restarted!");
 #endif
+    hostMultiplayer();
+    if (netCallback) netCallback->levelGenerated(level);
 }
 
 bool NinecraftApp::handleBack(bool isDown)
@@ -331,7 +339,7 @@ void NinecraftApp::testCreationAndDestruction()
 		int seed = getEpochTimeS();
 		LOGI(">seed %d\n", seed);
 		selectLevel("perf", "perf", LevelSettings(seed, GameType::Creative));
-		// VoxelForge: no multiplayer hosting
+		hostMultiplayer();
 #ifndef STANDALONE_SERVER
 		setScreen(new ProgressScreen());
 #endif
@@ -360,20 +368,18 @@ void NinecraftApp::testJoiningAndDestruction()
 		_stateTicksLeft = 100;
 		_state = 0;
 	}
-	// VoxelForge: multiplayer join test removed
-	if (false && _state == 0) {
+	if (_state == 0) {
 		if (--_stateTicksLeft <= 0) {
-			// raknetInstance->clearServerList();
-			// locateMultiplayer();
+			raknetInstance->clearServerList();
+			locateMultiplayer();
 			_state = 1;
 		}
 	}
-	else if (false && _state == 1) {
-		if (true) {
-			// PingedCompatibleServer s = ...;
-			if (false) {
+	else if (_state == 1) {
+		if (!raknetInstance->getServerList().empty()) {
+			PingedCompatibleServer s = raknetInstance->getServerList().at(0);
 			if (s.name.GetLength() > 0) {
-    // VF_REMOVED: joinMultiplayer(s);
+				joinMultiplayer(s);
 #ifndef STANDALONE_SERVER
 				setScreen(new ProgressScreen());
 #endif

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(VoxelForge)
+project(MinecraftPE)
 
 include(cmake/CPM.cmake)
 
@@ -73,11 +73,13 @@ file(GLOB CLIENT_SOURCES
     "src/client/sound/*.cpp"
     "src/locale/*.cpp"
     "src/nbt/*.cpp"
-    "src/platform/CThread.cpp"
-    "src/platform/PngLoader.cpp"
-    "src/platform/time.cpp"
+    "src/network/*.cpp"
+    "src/network/command/*.cpp"
+    "src/platform/*.cpp"
     "src/platform/audio/SoundSystemAL.cpp"
     "src/platform/input/*.cpp"
+    "src/raknet/**.cpp"
+    "src/server/**.cpp"
     "src/util/**.cpp"
     "src/world/*.cpp"
     "src/world/phys/*.cpp"
@@ -104,14 +106,6 @@ file(GLOB CLIENT_SOURCES
     "src/world/level/storage/*.cpp"
     "src/world/level/tile/*.cpp"
     "src/world/level/tile/entity/*.cpp"
-    "src/raknet/BitStream.cpp"
-    "src/raknet/RakNetTypes.cpp"
-    "src/raknet/RakMemoryOverride.cpp"
-    "src/raknet/RakString.cpp"
-    "src/raknet/RakWString.cpp"
-    "src/raknet/DS_ByteQueue.cpp"
-    "src/raknet/GetTime.cpp"
-    "src/raknet/Itoa.cpp"
     "src/SharedConstants.cpp"
     "src/main.cpp"
     "src/NinecraftApp.cpp"

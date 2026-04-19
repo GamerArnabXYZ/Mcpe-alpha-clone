@@ -10,6 +10,7 @@
 #endif
 #include "../../world/level/Level.h"
 //#include "../../network/Packet.h"
+#include "../../network/packet/RemoveBlockPacket.h"
 #include "../../world/entity/player/Abilities.h"
 
 static const int DestructionTickDelay = 5;
