@@ -13,8 +13,6 @@
 #include "../../../world/level/Level.h"
 #include "../../../locale/I18n.h"
 #include "../../../util/StringUtils.h"
-#include "../../../network/packet/ContainerSetSlotPacket.h"
-#include "../../../network/RakNetInstance.h"
 #include "../../../world/level/tile/entity/TileEntity.h"
 #include "../../../world/level/tile/entity/ChestTileEntity.h"
 #include "../../../world/inventory/ContainerMenu.h"

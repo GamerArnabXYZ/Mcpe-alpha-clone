@@ -20,14 +20,9 @@
 
 #include "biome/Biome.h"
 #include "MobSpawner.h"
-#include "../../network/packet/SetEntityDataPacket.h"
-#include "../../network/RakNetInstance.h"
-#include "../../network/packet/EntityEventPacket.h"
-#include "../../network/packet/SetTimePacket.h"
 #include "../entity/monster/Zombie.h"
 #include "../inventory/BaseContainerMenu.h"
 #include "../Difficulty.h"
-#include "../../network/packet/ExplodePacket.h"
 
 Level::Level(LevelStorage* levelStorage, const std::string& levelName, const LevelSettings& settings, int generatorVersion, Dimension* fixedDimension /* = NULL */)
 	:	levelStorage(levelStorage),

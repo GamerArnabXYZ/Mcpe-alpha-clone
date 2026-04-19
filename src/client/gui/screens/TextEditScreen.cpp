@@ -8,7 +8,6 @@
 #include "../../renderer/GameRenderer.h"
 #include "../components/Button.h"
 #include "../../../network/Packet.h"
-#include "../../../network/RakNetInstance.h"
 TextEditScreen::TextEditScreen( SignTileEntity* signEntity )
  : sign(signEntity), isShowingKeyboard(false), frame(0), line(0), btnClose(1, "") {
 

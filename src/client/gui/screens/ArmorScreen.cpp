@@ -10,7 +10,6 @@
 #include "../../../world/entity/player/Inventory.h"
 #include "../../../world/entity/item/ItemEntity.h"
 #include "../../../world/level/Level.h"
-#include "../../../network/RakNetInstance.h"
 #include "../../renderer/entity/EntityRenderDispatcher.h"
 #include "../../../world/item/ArmorItem.h"
 

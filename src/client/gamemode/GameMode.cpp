@@ -1,7 +1,5 @@
 #include "GameMode.h"
 #include "../Minecraft.h"
-#include "../../network/packet/UseItemPacket.h"
-#include "../../network/packet/PlayerActionPacket.h"
 #include "../../world/level/Level.h"
 #include "../../world/item/ItemInstance.h"
 #include "../player/LocalPlayer.h"
@@ -10,8 +8,6 @@
 #include "../sound/SoundEngine.h"
 #include "../particle/ParticleEngine.h"
 #endif
-#include "../../network/RakNetInstance.h"
-#include "../../network/packet/RemoveBlockPacket.h"
 #ifndef STANDALONE_SERVER
 #include "../renderer/LevelRenderer.h"
 #endif

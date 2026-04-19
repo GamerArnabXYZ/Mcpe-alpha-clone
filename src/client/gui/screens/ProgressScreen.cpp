@@ -1,5 +1,4 @@
 #include "ProgressScreen.h"
-#include "DisconnectionScreen.h"
 #include "../Gui.h"
 #include "../Font.h"
 #include "../../Minecraft.h"

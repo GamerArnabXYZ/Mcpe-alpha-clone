@@ -18,7 +18,6 @@
 //#include "world/level/storage/FolderMethods.h"
 #ifndef STANDALONE_SERVER
 #include "client/gui/screens/StartMenuScreen.h"
-#include "client/gui/screens/UsernameScreen.h"
 #endif
 #include "client/player/LocalPlayer.h"
 #ifndef STANDALONE_SERVER
@@ -29,8 +28,6 @@
 #endif
 // sorry for raknet dependency, but I'm too lazy to find another getTime method
 #include "raknet/GetTime.h"
-#include "network/RakNetInstance.h"
-#include "network/ClientSideNetworkHandler.h"
 #include "client/gui/screens/ProgressScreen.h"
 
 //#include "world/entity/player/Inventory2.h"

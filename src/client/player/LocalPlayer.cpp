@@ -9,15 +9,6 @@
 #include "../../world/level/tile/Tile.h"
 #include "../../world/level/tile/entity/TileEntity.h"
 #include "../../world/level/material/Material.h"
-#include "../../network/packet/ContainerClosePacket.h"
-#include "../../network/packet/MovePlayerPacket.h"
-#include "../../network/packet/PlayerEquipmentPacket.h"
-#include "../../network/RakNetInstance.h"
-#include "../../network/packet/DropItemPacket.h"
-#include "../../network/packet/SetHealthPacket.h"
-#include "../../network/packet/SendInventoryPacket.h"
-#include "../../network/packet/EntityEventPacket.h"
-#include "../../network/packet/PlayerActionPacket.h"
 #include <vector>
 #include <cctype>
 #include "../../platform/log.h"
@@ -45,9 +36,7 @@
 #include "../gui/screens/TextEditScreen.h"
 #include "../particle/TakeAnimationParticle.h"
 #endif
-#include "../../network/packet/AnimatePacket.h"
 #include "../../world/item/ArmorItem.h"
-#include "../../network/packet/PlayerArmorEquipmentPacket.h"
 
 namespace {
 #ifndef STANDALONE_SERVER

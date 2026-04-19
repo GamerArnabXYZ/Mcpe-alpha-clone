@@ -1,7 +1,6 @@
 #include "OptionsScreen.h"
 
 #include "StartMenuScreen.h"
-#include "UsernameScreen.h"
 #include "DialogDefinitions.h"
 #include "../../Minecraft.h"
 #include "../../../AppPlatform.h"

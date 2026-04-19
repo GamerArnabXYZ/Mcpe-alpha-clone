@@ -3,8 +3,6 @@
 #include "../components/ImageButton.h"
 #include "../../Minecraft.h"
 #include "../../../util/Mth.h"
-#include "../../../network/RakNetInstance.h"
-#include "../../../network/ServerSideNetworkHandler.h"
 #include "client/Options.h"
 #include "client/gui/components/Button.h"
 #include "client/gui/screens/OptionsScreen.h"

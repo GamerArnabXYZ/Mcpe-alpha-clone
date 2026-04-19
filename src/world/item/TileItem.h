@@ -11,8 +11,6 @@
 #include "../level/Level.h"
 #include "../level/tile/Tile.h"
 
-#include "../../network/RakNetInstance.h"
-#include "../../network/packet/PlaceBlockPacket.h"
 
 class TileItem: public Item
 {

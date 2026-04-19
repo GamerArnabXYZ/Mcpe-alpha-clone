@@ -18,8 +18,6 @@
 #include "../../../locale/I18n.h"
 #include "../../../util/StringUtils.h"
 #include "../../../world/inventory/FurnaceMenu.h"
-#include "../../../network/packet/ContainerSetSlotPacket.h"
-#include "../../../network/RakNetInstance.h"
 
 static int heldMs = -1;
 static int percent = -1;

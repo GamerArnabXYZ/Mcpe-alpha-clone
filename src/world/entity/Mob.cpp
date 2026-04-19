@@ -13,14 +13,11 @@
 
 #include "../../nbt/CompoundTag.h"
 
-#include "../../network/RakNetInstance.h"
-#include "../../network/packet/MoveEntityPacket.h"
 #include "ai/control/MoveControl.h"
 #include "ai/control/JumpControl.h"
 #include "ai/PathNavigation.h"
 #include "ai/Sensing.h"
 #include "ai/goal/GoalSelector.h"
-#include "../../network/packet/SetEntityMotionPacket.h"
 #include "../item/ArmorItem.h"
 
 
