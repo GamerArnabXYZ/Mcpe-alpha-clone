@@ -431,7 +431,9 @@ void Minecraft::prepareLevel(const std::string& title) {
 	B.print(" - getTl: ");
 	C.print(" - clear: ");
 	D.print(" - prepr: ");
-	progressStageStatusId = 0;
+	// -1 = idle/done. Do NOT set 0 here — 0 means "Locating server"
+	// and ProgressScreen::tick() will disconnect after 10s if it sees 0.
+	progressStageStatusId = -1;
 }
 
 void Minecraft::update() {
@@ -1515,6 +1517,8 @@ int Minecraft::getProgressStatusId() {
 
 const char* Minecraft::getProgressMessage()
 {
+	if (progressStageStatusId < 0 || progressStageStatusId > 3)
+		return "";
 	return progressMessages[progressStageStatusId];
 }
 

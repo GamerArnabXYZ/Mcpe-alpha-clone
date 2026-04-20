@@ -15,6 +15,7 @@ public:
 
 	void tick();
 private:
+	bool tick_impl();
 	int ticks;
 };
 

@@ -20,53 +20,36 @@
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
-    /*
-      The hidden input MUST be:
-      - visible (opacity > 0, not display:none, not visibility:hidden)
-      - in the viewport
-      - user-interactable
-      Otherwise iOS/Android refuses to show keyboard.
-      We make it 1x1px at bottom-left, nearly invisible.
-    */
     #kb {
       position: fixed;
-      bottom: 2px;
-      left: 2px;
-      width: 1px;
-      height: 1px;
-      font-size: 16px;   /* iOS: prevents zoom on focus */
-      opacity: 0.02;     /* nearly invisible but not 0 */
-      border: none;
-      outline: none;
+      bottom: 2px; left: 2px;
+      width: 1px; height: 1px;
+      font-size: 16px;
+      opacity: 0.02;
+      border: none; outline: none;
       background: transparent;
       color: transparent;
       resize: none;
       z-index: 9999;
-      /* Always interactable — we manage focus ourselves */
     }
   </style>
 </head>
 <body>
 
 <canvas id="canvas" tabindex="1"></canvas>
-<!--
-  Single hidden textarea — works better than input on Android
-  because it doesn't submit on Enter
--->
 <textarea id="kb" autocomplete="off" autocorrect="off"
-          autocapitalize="off" spellcheck="false"
-          rows="1"></textarea>
+          autocapitalize="off" spellcheck="false" rows="1"></textarea>
 
 <script>
 'use strict';
 
-// ── Canvas size (freeze while keyboard open) ──────────────────────────────────
+// ── Canvas size management ────────────────────────────────────────────────────
 var canvas = document.getElementById('canvas');
 var kb     = document.getElementById('kb');
 
-var _kbOpen = false;   // is virtual keyboard currently showing?
-var _gameW  = 0;
-var _gameH  = 0;
+var _kbOpen    = false;  // virtual keyboard currently visible
+var _kbWanted  = false;  // C++ has requested keyboard (textbox focused)
+var _gameW = 0, _gameH = 0;
 
 function _applySize(w, h) {
   if (w === _gameW && h === _gameH) return;
@@ -81,28 +64,23 @@ function _applySize(w, h) {
 }
 
 function _syncSize() {
-  if (_kbOpen) return;          // don't resize while keyboard up
+  if (_kbOpen) return;  // freeze while keyboard up
   _applySize(window.innerWidth, window.innerHeight);
 }
 
-// visualViewport is the best API: it gives the size EXCLUDING keyboard
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', function() {
-    var vvH  = window.visualViewport.height;
-    var winH = window.screen.availHeight || window.outerHeight;
-    _kbOpen = (winH - vvH) > 150;
-    if (!_kbOpen) {
-      // keyboard closed — restore full size after a frame
+    var shrink = (window.screen.availHeight || window.outerHeight)
+                 - window.visualViewport.height;
+    if (shrink > 150) {
+      _kbOpen = true;
+    } else {
+      _kbOpen = false;
       requestAnimationFrame(_syncSize);
     }
-    // while keyboard is open: do nothing (freeze canvas size)
   });
-  window.addEventListener('resize', _syncSize);
-} else {
-  // Fallback: plain resize — not perfect but okay on desktop
-  window.addEventListener('resize', _syncSize);
 }
-
+window.addEventListener('resize', _syncSize);
 _syncSize();
 
 // ── Emscripten Module ─────────────────────────────────────────────────────────
@@ -116,23 +94,13 @@ var Module = {
   setStatus: function(t) { if (t) console.log('[MCPE] ' + t); }
 };
 
-// ── Keyboard input bridge ─────────────────────────────────────────────────────
-/*
-  Strategy:
-  - The textarea #kb is ALWAYS focused when the user taps the canvas.
-  - On mobile, focusing a textarea inside a touchstart handler reliably
-    opens the virtual keyboard (it's inside a user gesture).
-  - We listen to 'input' events on #kb and translate them to GLFW key/char
-    events dispatched on the canvas, which Emscripten's GLFW picks up.
-  - We never resize the canvas while the keyboard is open.
-*/
-
-var _sentinel = '\u200b'; // zero-width space as position sentinel
+// ── Keyboard bridge ───────────────────────────────────────────────────────────
+var _sentinel = '\u200b';
 var _lastKbVal = _sentinel;
 
 function _focusKb() {
-  // Must be called inside a user-gesture handler (touchstart / click)
-  kb.value = _sentinel;
+  // Must be called inside a user-gesture handler to actually open keyboard
+  kb.value   = _sentinel;
   _lastKbVal = _sentinel;
   kb.focus();
   try { kb.setSelectionRange(1, 1); } catch(e) {}
@@ -140,63 +108,74 @@ function _focusKb() {
 }
 
 function _blurKb() {
+  _kbWanted = false;
+  _kbOpen   = false;
   kb.blur();
-  _kbOpen = false;
   requestAnimationFrame(_syncSize);
 }
 
-// Input → inject characters
+// Called from C++ AppPlatform_glfw::showKeyboard() via emscripten_run_script
+// NOTE: emscripten_run_script is NOT inside a user gesture, so on mobile
+// this call alone won't open the keyboard. Instead we set _kbWanted=true
+// and then _focusKb() is called on the very next touchstart.
+window._mcpeShowKeyboard = function() {
+  _kbWanted = true;
+};
+
+// Called from C++ AppPlatform_glfw::hideKeyboard()
+window._mcpeHideKeyboard = function() {
+  _blurKb();
+};
+
+// textarea input → inject GLFW key/char events
 kb.addEventListener('input', function() {
   var cur  = kb.value;
   var prev = _lastKbVal;
 
   if (cur.length > prev.length) {
-    // Characters typed
     var added = cur.slice(prev.length);
     for (var i = 0; i < added.length; i++) {
       var cp = added.codePointAt(i);
-      if (cp !== 0x200b && cp > 31) {   // skip sentinel
-        _injectChar(cp);
-      }
+      if (cp !== 0x200b && cp > 31) _injectChar(cp);
     }
   } else {
-    // Deletion / backspace
-    _injectKey(259, 1);   // GLFW_KEY_BACKSPACE down
+    // backspace / deletion
+    _injectKey(259, 1);
     _injectKey(259, 0);
   }
 
   _lastKbVal = cur;
-
-  // Refill sentinel so backspace detection always works
-  if (cur.length === 0 || cur === '') {
+  if (cur.length === 0) {
     kb.value   = _sentinel;
     _lastKbVal = _sentinel;
   }
 });
 
-// Hardware keys (Enter, Escape, arrows) on keydown
 kb.addEventListener('keydown', function(e) {
   var g = _toGlfw(e.key);
-  if (g) {
-    _injectKey(g, 1);
-    e.preventDefault();
-  }
+  if (g) { _injectKey(g, 1); e.preventDefault(); }
 });
 kb.addEventListener('keyup', function(e) {
   var g = _toGlfw(e.key);
   if (g) _injectKey(g, 0);
 });
 
+// If user dismisses keyboard manually (back button on Android)
+kb.addEventListener('blur', function() {
+  if (_kbWanted) {
+    // Game still wants keyboard — mark closed but don't restore size yet
+    _kbOpen = false;
+  }
+});
+
 function _injectKey(glfwKey, action) {
   canvas.dispatchEvent(new KeyboardEvent(
     action ? 'keydown' : 'keyup',
-    { bubbles: true, cancelable: true,
-      keyCode: glfwKey, which: glfwKey }
+    { bubbles: true, cancelable: true, keyCode: glfwKey, which: glfwKey }
   ));
 }
 
 function _injectChar(cp) {
-  // GLFW web reads charCode from 'keypress'
   canvas.dispatchEvent(new KeyboardEvent('keypress', {
     bubbles: true, cancelable: true,
     charCode: cp, which: cp, keyCode: cp
@@ -204,41 +183,33 @@ function _injectChar(cp) {
 }
 
 function _toGlfw(key) {
-  var m = {
-    'Enter': 257, 'Escape': 256, 'Backspace': 259, 'Tab': 258,
-    'ArrowLeft': 263, 'ArrowRight': 262, 'ArrowUp': 265, 'ArrowDown': 264,
-    'Shift': 340, 'Control': 341, ' ': 32
-  };
-  return m[key] || 0;
+  return { 'Enter':257, 'Escape':256, 'Backspace':259, 'Tab':258,
+           'ArrowLeft':263, 'ArrowRight':262, 'ArrowUp':265, 'ArrowDown':264,
+           'Shift':340, 'Control':341, ' ':32 }[key] || 0;
 }
 
-// ── Touch input bridge ────────────────────────────────────────────────────────
-var _slots   = {};
-var _slotCtr = 0;
-
+// ── Touch input ───────────────────────────────────────────────────────────────
+var _slots = {}, _slotCtr = 0;
 function _slot(id) {
   if (_slots[id] === undefined) _slots[id] = (_slotCtr++) % 12;
   return _slots[id];
 }
 function _freeSlot(id) { delete _slots[id]; }
 
-function _touch(action, btn, x, y, slot) {
-  // Primary finger → mouse events (GLFW web mouse callback)
-  if (slot === 0) {
+function _feedTouch(action, btn, x, y, s) {
+  if (s === 0) {
     canvas.dispatchEvent(new MouseEvent(
-      action === 0 ? 'mousemove' : btn ? 'mousedown' : 'mouseup',
-      { bubbles: true, cancelable: true,
-        clientX: x, clientY: y,
-        button: 0, buttons: btn ? 1 : 0 }
+      action===0 ? 'mousemove' : btn ? 'mousedown' : 'mouseup',
+      { bubbles:true, cancelable:true,
+        clientX:x, clientY:y, button:0, buttons:btn?1:0 }
     ));
   }
-  // All fingers → pointer events
   try {
     canvas.dispatchEvent(new PointerEvent(
-      action === 0 ? 'pointermove' : btn ? 'pointerdown' : 'pointerup',
-      { bubbles: true, cancelable: true,
-        pointerId: slot, clientX: x, clientY: y,
-        pointerType: 'touch', isPrimary: slot === 0 }
+      action===0 ? 'pointermove' : btn ? 'pointerdown' : 'pointerup',
+      { bubbles:true, cancelable:true,
+        pointerId:s, clientX:x, clientY:y,
+        pointerType:'touch', isPrimary:s===0 }
     ));
   } catch(e) {}
 }
@@ -253,42 +224,46 @@ function _initTouch() {
 
 function _ts(e) {
   e.preventDefault();
-  // *** THIS IS THE KEY FIX ***
-  // Focus the hidden textarea RIGHT HERE inside the touchstart handler.
-  // Browsers only allow keyboard to open from inside a user-gesture handler.
-  // We always do this — if no text box is active in game it's harmless.
-  _focusKb();
+
+  // *** KEY FIX ***
+  // Only open keyboard if C++ has requested it (_kbWanted).
+  // This is set by AppPlatform_glfw::showKeyboard() when a TextBox is clicked.
+  // We call _focusKb() HERE (inside touchstart = user gesture) so the
+  // browser allows the virtual keyboard to open.
+  if (_kbWanted) {
+    _focusKb();
+  }
 
   for (var i = 0; i < e.changedTouches.length; i++) {
     var t = e.changedTouches[i];
-    _touch(1, 1, t.clientX|0, t.clientY|0, _slot(t.identifier));
+    _feedTouch(1, 1, t.clientX|0, t.clientY|0, _slot(t.identifier));
   }
 }
 function _tm(e) {
   e.preventDefault();
   for (var i = 0; i < e.changedTouches.length; i++) {
     var t = e.changedTouches[i];
-    _touch(0, 0, t.clientX|0, t.clientY|0, _slot(t.identifier));
+    _feedTouch(0, 0, t.clientX|0, t.clientY|0, _slot(t.identifier));
   }
 }
 function _te(e) {
   e.preventDefault();
   for (var i = 0; i < e.changedTouches.length; i++) {
     var t = e.changedTouches[i];
-    _touch(1, 0, t.clientX|0, t.clientY|0, _slot(t.identifier));
+    _feedTouch(1, 0, t.clientX|0, t.clientY|0, _slot(t.identifier));
     _freeSlot(t.identifier);
   }
 }
 
-// ── Desktop: pointer lock for mouse look ──────────────────────────────────────
+// ── Desktop pointer lock ──────────────────────────────────────────────────────
 canvas.addEventListener('click', function() {
   canvas.focus();
-  if (!('ontouchstart' in window)) {
-    if (canvas.requestPointerLock) canvas.requestPointerLock();
+  if (!('ontouchstart' in window) && canvas.requestPointerLock) {
+    canvas.requestPointerLock();
   }
 });
 
-// ── Save worlds to IndexedDB on close ─────────────────────────────────────────
+// ── Save on close ─────────────────────────────────────────────────────────────
 window.addEventListener('beforeunload', function() {
   if (typeof FS !== 'undefined') {
     try { FS.syncfs(false, function() {}); } catch(e) {}

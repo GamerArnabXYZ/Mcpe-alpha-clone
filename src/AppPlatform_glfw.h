@@ -133,6 +133,22 @@ public:
 		return false;
 	}
 
+	virtual void showKeyboard() override {
+		keyboardVisible = true;
+		#ifdef __EMSCRIPTEN__
+		emscripten_run_script(
+			"if(window._mcpeShowKeyboard) window._mcpeShowKeyboard();");
+		#endif
+	}
+
+	virtual void hideKeyboard() override {
+		keyboardVisible = false;
+		#ifdef __EMSCRIPTEN__
+		emscripten_run_script(
+			"if(window._mcpeHideKeyboard) window._mcpeHideKeyboard();");
+		#endif
+	}
+
 	virtual void hideCursor(bool hide) override {
 		int isHide = hide ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN;
 		glfwSetInputMode(window, GLFW_CURSOR, isHide);

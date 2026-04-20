@@ -92,8 +92,17 @@ void ProgressScreen::render( int xm, int ym, float a )
 bool ProgressScreen::isInGameScreen() { return false; }
 
 void ProgressScreen::tick() {
-	// After 10 seconds of not connecting -> write an error message and go back
-	if (++ticks == 10 * SharedConstants::TicksPerSecond && minecraft->getProgressStatusId() == 0) {
-		minecraft->setScreen( new DisconnectionScreen("Could not connect to server. Try again.") );
+	tick_impl();
+}
+
+bool ProgressScreen::tick_impl() {
+	// Only timeout when genuinely waiting for network (statusId == 0)
+	// and level has not finished generating yet.
+	if (++ticks == 10 * SharedConstants::TicksPerSecond
+	    && minecraft->getProgressStatusId() == 0
+	    && !minecraft->isLevelGenerated()) {
+		minecraft->setScreen(new DisconnectionScreen("Could not connect to server. Try again."));
+		return true;
 	}
+	return false;
 }
