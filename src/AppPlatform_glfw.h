@@ -128,25 +128,9 @@ public:
 
 	virtual bool supportsTouchscreen() override {
 		#ifdef __EMSCRIPTEN__
-			return true; // Web build handles touch via JS → Multitouch::feed
+			return true;
 		#endif
 		return false;
-	}
-
-	virtual void showKeyboard() override {
-		keyboardVisible = true;
-		#ifdef __EMSCRIPTEN__
-		// Tell JS to focus the hidden input so mobile keyboard opens.
-		// The JS side freezes canvas resize while keyboard is open.
-		emscripten_run_script("if(window._mcpeShowKeyboard) window._mcpeShowKeyboard();");
-		#endif
-	}
-
-	virtual void hideKeyboard() override {
-		keyboardVisible = false;
-		#ifdef __EMSCRIPTEN__
-		emscripten_run_script("if(window._mcpeHideKeyboard) window._mcpeHideKeyboard();");
-		#endif
 	}
 
 	virtual void hideCursor(bool hide) override {
