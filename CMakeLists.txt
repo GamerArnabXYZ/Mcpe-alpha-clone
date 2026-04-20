@@ -92,6 +92,8 @@ target_link_options(${PROJECT_NAME} PRIVATE
     "-sGL_UNSAFE_OPTS=0"
     "-sEMULATE_FUNCTION_POINTER_CASTS=1"
     "-sALLOW_TABLE_GROWTH=1"
+    "-sASSERTIONS=1"
+    "-sSTACK_SIZE=5242880"
     "-sEXPORTED_RUNTIME_METHODS=['FS','stringToUTF8','UTF8ToString','cwrap','ccall','HEAP8','HEAPU8','HEAP32','HEAPU32']"
     "-sEXPORTED_FUNCTIONS=['_main']"
     "--preload-file=${CMAKE_SOURCE_DIR}/data@/data"

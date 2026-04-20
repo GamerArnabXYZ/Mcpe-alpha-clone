@@ -141,12 +141,15 @@ int main(void) {
 	appContext.platform = new AppPlatform_glfw();
 #if defined(__EMSCRIPTEN__)
 	EM_ASM(
-		FS.mkdir('/games');
-		FS.mkdir('/games/com.mojang');
-        FS.mkdir('/games/com.mojang/minecraftWorlds');
-        FS.mount(IDBFS, {}, '/games');
-        FS.syncfs(true, function (err) {});
-    );
+		try { FS.mkdir('/games'); } catch(e) {}
+		try { FS.mkdir('/games/com.mojang'); } catch(e) {}
+		try { FS.mkdir('/games/com.mojang/minecraftWorlds'); } catch(e) {}
+		try { FS.mkdir('/games/com.mojang/minecraftpe'); } catch(e) {}
+		FS.mount(IDBFS, {}, '/games');
+		FS.syncfs(true, function(err) {
+			if (err) console.warn('IDBFS load error:', err);
+		});
+	);
 #endif
 
 	glfwSetErrorCallback(error_callback);
@@ -191,8 +194,16 @@ int main(void) {
 	App* app = new MAIN_CLASS();
 
 	g_app = app;
+#if defined(__EMSCRIPTEN__)
+	// Web: storage lives at /games (IDBFS mount point set up above)
+	// Do NOT use "." — ExternalFileLevelStorageSource will try to mkdir
+	// relative paths which fail before IDBFS is ready.
+	((MAIN_CLASS*)g_app)->externalStoragePath = "";
+	((MAIN_CLASS*)g_app)->externalCacheStoragePath = "";
+#else
 	((MAIN_CLASS*)g_app)->externalStoragePath = ".";
 	((MAIN_CLASS*)g_app)->externalCacheStoragePath = ".";
+#endif
 	g_app->init(appContext);
 	g_app->setSize(appContext.platform->getScreenWidth(), appContext.platform->getScreenHeight());
 

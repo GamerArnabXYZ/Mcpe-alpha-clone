@@ -109,28 +109,29 @@ public:
 	virtual int getScreenWidth() override { 
 		#ifdef __EMSCRIPTEN__
 			int w, h;
-			emscripten_get_canvas_element_size("canvas", &w, &h);
-
-			return w;
+			emscripten_get_canvas_element_size("#canvas", &w, &h);
+			return w > 0 ? w : 854;
 		#endif
-
 		return 854; 
 	};
 
 	virtual int getScreenHeight() override { 
 		#ifdef __EMSCRIPTEN__
 			int w, h;
-			emscripten_get_canvas_element_size("canvas", &w, &h);
-
-			return h;
+			emscripten_get_canvas_element_size("#canvas", &w, &h);
+			return h > 0 ? h : 480;
 		#endif
-
 		return 480; 
 	};
 
 	virtual float getPixelsPerMillimeter() override;
 
-	virtual bool supportsTouchscreen() override { return false; /* glfw supports only mouse and keyboard */ }
+	virtual bool supportsTouchscreen() override {
+		#ifdef __EMSCRIPTEN__
+			return true; // Web build handles touch via JS → Multitouch::feed
+		#endif
+		return false;
+	}
 
 	virtual void hideCursor(bool hide) override {
 		int isHide = hide ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN;

@@ -2,43 +2,316 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>MCPE 0.6.1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Minecraft PE 0.6.1</title>
+  <link rel="icon" href="data:,"><!-- Suppress favicon 404 -->
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: black;
+      width: 100%; height: 100%;
+      background: #000;
       overflow: hidden;
+      touch-action: none; /* Prevent scroll/zoom on mobile */
     }
-
     #canvas {
+      display: block;
       width: 100vw;
       height: 100vh;
-      display: block;
+      /* Keep crisp pixels — no browser anti-aliasing */
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    /* Mobile keyboard input overlay — invisible, stays focused */
+    #mobile-input {
+      position: fixed;
+      top: 0; left: 0;
+      width: 1px; height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      font-size: 16px; /* Prevent iOS zoom on focus */
+      border: none;
+      background: transparent;
     }
   </style>
 </head>
 <body>
 
-<canvas id="canvas"></canvas>
+<canvas id="canvas" tabindex="1"></canvas>
+<!-- Hidden input to capture mobile keyboard -->
+<input id="mobile-input" type="text" autocomplete="off"
+       autocorrect="off" autocapitalize="off" spellcheck="false">
 
 <script>
-  var Module = {
-    canvas: document.getElementById('canvas'),
-    onRuntimeInitialized: function () { resizeCanvas() }
-  };
+// ─── Canvas resize ────────────────────────────────────────────────────────────
+var canvas = document.getElementById('canvas');
 
-  function resizeCanvas() {
-    const canvas = Module.canvas;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  if (typeof Module !== 'undefined' && Module.setCanvasSize) {
+    Module.setCanvasSize(canvas.width, canvas.height);
   }
+}
 
-  window.addEventListener('resize', resizeCanvas);
-  window.addEventListener('beforeunload', () => {
-    FS.syncfs(true, function (err) { console.log('Sync FS failed: ' + err) });
-  })
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// ─── Emscripten Module config ─────────────────────────────────────────────────
+var Module = {
+  canvas: canvas,
+  onRuntimeInitialized: function () {
+    resizeCanvas();
+    canvas.focus();
+    setupTouchInput();
+    setupMobileKeyboard();
+  },
+  // Show a loading bar while WASM loads
+  setStatus: function(text) {
+    if (text) console.log('[MCPE] ' + text);
+  }
+};
+
+// ─── Touch → Multitouch bridge ───────────────────────────────────────────────
+// Maps native touch identifiers to slot indices 0–11 (MAX_POINTERS = 12)
+var touchSlots = {};
+var nextSlot = 0;
+
+function getTouchSlot(id) {
+  if (touchSlots[id] === undefined) {
+    touchSlots[id] = nextSlot % 12;
+    nextSlot++;
+  }
+  return touchSlots[id];
+}
+
+function freeTouchSlot(id) {
+  delete touchSlots[id];
+}
+
+// Multitouch::feed(actionButtonId, buttonData, x, y, pointerId)
+// actionButtonId: 0=move, 1=down/up
+// buttonData:     1=pressed, 0=released
+function feedTouch(action, buttonData, x, y, slot) {
+  if (typeof Module._mcpe_touch_feed === 'function') {
+    Module._mcpe_touch_feed(action, buttonData, x | 0, y | 0, slot);
+  } else if (typeof Module.ccall === 'function') {
+    // Fallback: call via ccall if exported
+    try {
+      Module.ccall('mcpe_touch_feed', null,
+        ['number','number','number','number','number'],
+        [action, buttonData, x|0, y|0, slot]);
+    } catch(e) {}
+  }
+  // Also simulate GLFW mouse for the primary finger (slot 0)
+  if (slot === 0) {
+    simulateMouseFromTouch(action, buttonData, x, y);
+  }
+}
+
+// Simulate GLFW mouse events via Emscripten's built-in touch→mouse emulation
+// GLFW web already does touchstart→mousedown for pointer 0, but we reinforce it
+function simulateMouseFromTouch(action, buttonData, x, y) {
+  var eventType;
+  if (action === 0) eventType = 'mousemove';
+  else if (buttonData === 1) eventType = 'mousedown';
+  else eventType = 'mouseup';
+
+  var evt = new MouseEvent(eventType, {
+    bubbles: true,
+    cancelable: true,
+    clientX: x,
+    clientY: y,
+    button: 0,
+    buttons: buttonData === 1 ? 1 : 0
+  });
+  canvas.dispatchEvent(evt);
+}
+
+function setupTouchInput() {
+  // Prevent default scrolling/zooming on canvas touches
+  canvas.addEventListener('touchstart',  onTouchStart,  { passive: false });
+  canvas.addEventListener('touchmove',   onTouchMove,   { passive: false });
+  canvas.addEventListener('touchend',    onTouchEnd,    { passive: false });
+  canvas.addEventListener('touchcancel', onTouchCancel, { passive: false });
+}
+
+function onTouchStart(e) {
+  e.preventDefault();
+  focusMobileInput();
+  for (var i = 0; i < e.changedTouches.length; i++) {
+    var t = e.changedTouches[i];
+    var slot = getTouchSlot(t.identifier);
+    feedTouch(1, 1, t.clientX, t.clientY, slot);
+  }
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  for (var i = 0; i < e.changedTouches.length; i++) {
+    var t = e.changedTouches[i];
+    var slot = getTouchSlot(t.identifier);
+    feedTouch(0, 0, t.clientX, t.clientY, slot);
+  }
+}
+
+function onTouchEnd(e) {
+  e.preventDefault();
+  for (var i = 0; i < e.changedTouches.length; i++) {
+    var t = e.changedTouches[i];
+    var slot = getTouchSlot(t.identifier);
+    feedTouch(1, 0, t.clientX, t.clientY, slot);
+    freeTouchSlot(t.identifier);
+  }
+}
+
+function onTouchCancel(e) {
+  e.preventDefault();
+  for (var i = 0; i < e.changedTouches.length; i++) {
+    var t = e.changedTouches[i];
+    var slot = getTouchSlot(t.identifier);
+    feedTouch(1, 0, t.clientX, t.clientY, slot);
+    freeTouchSlot(t.identifier);
+  }
+}
+
+// ─── Mobile keyboard bridge ───────────────────────────────────────────────────
+// GLFW on Emscripten only fires key events when the canvas has focus.
+// On mobile, the virtual keyboard only opens on a real <input>.
+// We bridge: input events → Emscripten keyboard callbacks.
+var mobileInput = document.getElementById('mobile-input');
+var lastInputValue = '';
+
+function focusMobileInput() {
+  mobileInput.focus();
+  mobileInput.value = ' '; // Keep caret so backspace works
+  lastInputValue = ' ';
+}
+
+function setupMobileKeyboard() {
+  // On mobile tap → show keyboard
+  canvas.addEventListener('click', function(e) {
+    focusMobileInput();
+  });
+
+  // Character input (letters, numbers, symbols)
+  mobileInput.addEventListener('input', function(e) {
+    var cur = mobileInput.value;
+    var prev = lastInputValue;
+
+    if (cur.length > prev.length) {
+      // Characters added
+      var added = cur.slice(prev.length);
+      for (var i = 0; i < added.length; i++) {
+        var code = added.charCodeAt(i);
+        if (code > 31) {
+          // Send as character event via GLFW character callback
+          injectCharacter(code);
+        }
+      }
+    } else if (cur.length < prev.length) {
+      // Backspace
+      injectKey(8, 1);  // KEY_BACKSPACE down
+      injectKey(8, 0);  // KEY_BACKSPACE up
+    }
+
+    lastInputValue = cur;
+
+    // Refill so we always have a sentinel char for backspace detection
+    if (cur.length === 0) {
+      mobileInput.value = ' ';
+      lastInputValue = ' ';
+    }
+  });
+
+  // Explicit key events (Enter, Escape, etc.)
+  mobileInput.addEventListener('keydown', function(e) {
+    var glfwKey = domKeyToGlfw(e.key, e.keyCode);
+    if (glfwKey !== 0) {
+      injectKey(glfwKey, 1);
+    }
+  });
+
+  mobileInput.addEventListener('keyup', function(e) {
+    var glfwKey = domKeyToGlfw(e.key, e.keyCode);
+    if (glfwKey !== 0) {
+      injectKey(glfwKey, 0);
+    }
+  });
+}
+
+// Inject a GLFW key event via Emscripten internals
+// action: 1=press, 0=release
+function injectKey(glfwKey, action) {
+  // Emscripten exposes the GLFW key callback via Module internals
+  try {
+    if (Module['_emscripten_glfw3_key_press']) {
+      Module['_emscripten_glfw3_key_press'](glfwKey, 0, action ? 1 : 0, 0);
+    }
+  } catch(e) {}
+
+  // Fallback: dispatch a synthetic keyboard event to canvas which GLFW picks up
+  var type = action ? 'keydown' : 'keyup';
+  var evt = new KeyboardEvent(type, {
+    bubbles: true, cancelable: true,
+    keyCode: glfwKey, which: glfwKey
+  });
+  canvas.dispatchEvent(evt);
+}
+
+// Inject a Unicode character (for text input)
+function injectCharacter(codepoint) {
+  try {
+    // Emscripten GLFW char callback
+    if (Module['_emscripten_glfw3_char_event']) {
+      Module['_emscripten_glfw3_char_event'](codepoint);
+    }
+  } catch(e) {}
+
+  // Fallback: keypress event (deprecated but GLFW web still reads it)
+  var evt = new KeyboardEvent('keypress', {
+    bubbles: true, cancelable: true,
+    charCode: codepoint, which: codepoint, keyCode: codepoint
+  });
+  canvas.dispatchEvent(evt);
+}
+
+// Map DOM key names/codes to GLFW key constants
+function domKeyToGlfw(key, keyCode) {
+  switch (key) {
+    case 'Enter':     return 257; // GLFW_KEY_ENTER
+    case 'Escape':    return 256; // GLFW_KEY_ESCAPE
+    case 'Backspace': return 259; // GLFW_KEY_BACKSPACE
+    case 'Tab':       return 258; // GLFW_KEY_TAB
+    case 'ArrowLeft': return 263; // GLFW_KEY_LEFT
+    case 'ArrowRight':return 262; // GLFW_KEY_RIGHT
+    case 'ArrowUp':   return 265; // GLFW_KEY_UP
+    case 'ArrowDown': return 264; // GLFW_KEY_DOWN
+    case 'Shift':     return 340; // GLFW_KEY_LEFT_SHIFT
+    case 'Control':   return 341; // GLFW_KEY_LEFT_CONTROL
+    case ' ':         return 32;  // GLFW_KEY_SPACE
+    default: return 0;
+  }
+}
+
+// ─── IndexedDB sync on close ──────────────────────────────────────────────────
+window.addEventListener('beforeunload', function() {
+  if (typeof FS !== 'undefined') {
+    FS.syncfs(false, function(err) {
+      if (err) console.warn('FS sync failed:', err);
+    });
+  }
+});
+
+// ─── Pointer lock for desktop mouse (right-click look) ───────────────────────
+canvas.addEventListener('click', function() {
+  // Only request pointer lock on desktop (not mobile)
+  if (!('ontouchstart' in window)) {
+    canvas.requestPointerLock = canvas.requestPointerLock ||
+                                canvas.mozRequestPointerLock;
+    if (canvas.requestPointerLock) canvas.requestPointerLock();
+  }
+  canvas.focus();
+});
 </script>
 
 <script src="MinecraftPE.js"></script>
